@@ -1,0 +1,58 @@
+<!--
+Quick and dirty hack to create the skill queue graphics for the stylesheet
+-->
+<style>body{background:#000;} canvas{margin:1px;}</style>
+<body><br></body>
+<script>
+'use strict';
+
+var skillbar = "#eee"
+var skillbar_alt = "#22222f"
+var skillbar_t = "#00b8ff"
+var skillcat = "#11111f"
+var skillcat_h = "#065171"
+var skillcat_eh = "#073148"
+
+var css = "";
+
+for (var trained = 0; trained < 6; trained++) {
+	for (var training = 0; training < 6-trained; training++) {
+		var c = document.createElement('canvas');
+		document.body.appendChild(c);
+		c.width = 76;
+		c.height = 13;
+		var context = c.getContext('2d');
+		context.fillStyle = skillbar;
+		for (var bar = 0; bar < trained; bar++) {
+			context.fillRect(15*bar, 0, 13, c.height)
+		}
+		context.fillStyle = skillbar_t;
+		for (; bar < trained + training; bar++) {
+			context.fillRect(15*bar, 0, 13, c.height);
+		}
+		context.fillStyle = '#44444d';
+		for (; bar < 5; bar++) {
+			context.fillRect(15*bar, 0, 13, c.height);
+		}
+
+		css += `.s${trained}_${training} { background-image: url("${c.toDataURL()}") }\n`;
+	}
+	document.body.appendChild(document.createElement('br'));
+}
+
+var c = document.createElement('canvas');
+document.body.appendChild(c);
+c.width = 81;
+c.height = 13;
+var context = c.getContext('2d');
+context.fillStyle = '#44444d';
+for (var bar = 0; bar < 5; bar++) {
+	context.fillRect(16*bar + 4, 4, 5, c.height - 9)
+}
+
+css += `.s { background-image: url("${c.toDataURL()}") }\n`
+
+console.log(css)
+
+
+</script>

@@ -1,0 +1,9 @@
+client = yes
+foreground = yes
+debug = info
+pid =
+
+[mysslconnect]
+accept = 127.127.127.127:12721
+connect = esi.evetech.net:443
+delay = yes

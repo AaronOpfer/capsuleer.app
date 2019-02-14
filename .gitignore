@@ -1,0 +1,9 @@
+supervisord.log
+supervisord.pid
+node_modules
+static/
+src/skills.json
+__pycache__
+.idea
+.venv
+*.swp

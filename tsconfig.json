@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "./static/",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "module": "commonjs",
+        "target": "esnext",
+        "jsx": "react",
+	"resolveJsonModule": true,
+	"allowSyntheticDefaultImports": true,
+        "strictNullChecks": true
+    },
+    "include": [
+        "./src/**/*"
+    ]
+}

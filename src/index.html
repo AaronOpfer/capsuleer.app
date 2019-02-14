@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>capsuleer.app</title>
+    <meta name=viewport content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#1c3b50">
+    <meta name="og:title" content="capsuleer.app - EVE Online Training Monitor">
+    <meta name="og:type" content="website">
+    <meta name="og:image" content="https://capsuleer.app/s/og.png">
+    <meta name="og:url" content="https://capsuleer.app/">
+    <link rel="apple-touch-icon" href="/s/capsule.png">
+    <meta name="og:description" content="See all of your characters' skill plans and evaluate effectiveness of skill injectors and cerebral accelerators.
+Tie all of your characters into one convenient SSO login. No email required!">
+    <script>
+window.esi_early_fetch = (
+async function early_fetch () {
+    return await fetch(
+        '/characters',
+        {
+          credentials: 'same-origin',
+        }
+    );
+})();
+    </script>
+    <script defer crossorigin src="https://unpkg.com/react@16.8.2/umd/react.<%= webpackConfig.mode == "development" ? "development" : "production.min" %>.js"></script>
+    <script defer crossorigin src="https://unpkg.com/react-dom@16.8.2/umd/react-dom.<%= webpackConfig.mode == "development" ? "development" : "production.min" %>.js"></script>
+  </head>
+  <body>
+    <div id=app>
+      <header>
+        <h1>capsuleer.app</h1>
+      </header>
+      <div>
+        <img src="s/loading.svg">
+      </div>
+    </div>
+    <footer>
+      <a id="manage_third_party" href="https://community.eveonline.com/support/third-party-applications/">manage third party applications</a>
+      <span id="beg">Want to say thanks? ISK donations to Vaeltek are appreciated!</span>
+      <a id="logout" href='/logout'>log out</a>
+      <span id="copy">&copy; 2020 capsuleer.app</span>
+    </footer>
+  </body>
+</html>
