@@ -15,7 +15,7 @@ I recommend those who would want to make contributions contact me and ask first 
 
 #### supervisor
 
-I'm using supervisor to start and run all daemons.
+I'm using supervisor to start and run all daemons, except for nginx, which comes from the Debian system.
 
 #### `esi` app server
 
@@ -29,9 +29,19 @@ I'm using postgres to store character tokens and user profiles.
 
 I'm using varnish to cache ESI API responses. This should theoretically let me run several instances of the application server behind a load balancer (which I've never actually tried).
 
-### stunnel
+#### stunnel
 
 `stunnel` is used to connect Varnish to the HTTPS ESI API without having to pay for Varnish Pro.
+
+## Component Connections
+
+`nginx` communicates with the `esi` application via an HTTP server started on a unix socket.
+
+`esi` communicates with `postgres` and `varnish`. `varnish` listens on a localhost TCP port. It would be nice if this also used a unix socket.
+
+`varnish` communicates with `stunnel` over another localhost TCP port. Again, would be nice is this was a unix socket instead.
+
+Finally, `stunnel` communicates to the official ESI API.
 
 
 # License
