@@ -1,0 +1,17 @@
+[esi]
+client_id = xxxx
+client_secret_key = yyyy
+esi_url = http://127.127.127.127:55555
+
+
+[http]
+cookie_secret_key = b'REPLACE THIS WITH SOME RANDOM BYTES. TRY uuid.uuid4().bytes'
+base_url = https://capsuleer.app
+listen_socket = /tmp/prod.esi.sock
+
+[database]
+user = put your database
+password = credentials here
+database = esi_prod
+host = 127.0.0.1
+
