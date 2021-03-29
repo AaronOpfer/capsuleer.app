@@ -13,6 +13,12 @@ I recommend those who would want to make contributions contact me and ask first 
 
 # Development / Deployment Outline
 
+## Example Configurations
+
+Everything that ends with `.example` is a configuration that you will need to copy and modify to suit your local environment.
+
+## ESI Registration
+
 [You will need to create an application with EVE](https://developers.eveonline.com/applications) and get the `client_id` and `client_secret`, and install them into `esi.conf`. You'll need to specify a callback URL with CCP; It should be `<http or https>://<whatever your canonical hostname is>/callback`.
 
 ## `offline/` directory
