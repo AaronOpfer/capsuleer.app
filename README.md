@@ -13,6 +13,14 @@ I recommend those who would want to make contributions contact me and ask first 
 
 # Development Outline
 
+## `offline/` directory
+
+The offline directory contains scripts for generating static data used by various parts of the app.
+
+ * `implant_search.py` creates the static data necessary to determine which implant IDs correspond to which attribute bonus.
+ * `all_forge_npc.py` determines all station IDs for NPC stations in The Forge, necessary for the market price estimator feature to differentiate citadels and stations.
+ * `dump_skills.py` creates a static JSON file used by the JavaScript build so that the local client has complete knowledge of the skills available in EVE Online. *This means that the front-end needs to be rebuilt every time CCP adds more skills to the game.*
+
 ## Persistent Components
 
 #### supervisor
