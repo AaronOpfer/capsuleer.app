@@ -11,6 +11,8 @@ Could be any number of reasons, but they all come down to the fact that I don't 
 
 I recommend those who would want to make contributions contact me and ask first what sorts of contributions I would be willing to accept before they begin work; this would give the greatest amount of respect for everyone's time involved. I have limited capacity to accept pull requests.
 
+# Development Outline
+
 ## Persistent Components
 
 #### supervisor
