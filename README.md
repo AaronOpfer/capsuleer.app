@@ -11,7 +11,9 @@ Could be any number of reasons, but they all come down to the fact that I don't 
 
 I recommend those who would want to make contributions contact me and ask first what sorts of contributions I would be willing to accept before they begin work; this would give the greatest amount of respect for everyone's time involved. I have limited capacity to accept pull requests.
 
-# Development Outline
+# Development / Deployment Outline
+
+[You will need to create an application with EVE](https://developers.eveonline.com/applications) and get the `client_id` and `client_secret`, and install them into `esi.conf`. You'll need to specify a callback URL with CCP; It should be `<http or https>://<whatever your canonical hostname is>/callback`.
 
 ## `offline/` directory
 
