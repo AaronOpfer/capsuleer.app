@@ -1,5 +1,6 @@
 forge_npc_station_ids = frozenset(
     {
+        60015157,
         60001483,
         60001486,
         60001537,

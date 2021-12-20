@@ -3,8 +3,7 @@ import pprint
 import operator
 import enum
 
-from esi.config import *
-from esi.esi_session import ESISession
+from esi.esi import ESISession
 
 
 async def amain():
