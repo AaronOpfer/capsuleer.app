@@ -33,6 +33,7 @@ class AcceleratorInfo(NamedTuple):
 
 class ItemTypes(enum.Enum):
     MasterAtArms = 48582
+    Expert = 55826
     LargeSkillInjector = 40520
     SmallSkillInjector = 45635
     BY805 = 27147

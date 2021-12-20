@@ -35,8 +35,6 @@ async def get_isk_for_sp_options(
             "Cerebral Accelerator search yielded %d results", len(res["inventory_type"])
         )
         for item_type_id in res["inventory_type"]:
-            if item_type_id == ItemTypes.MasterAtArms.value:
-                continue
             res = await esi.get_type_information(item_type_id)
             res = res.result
             if res["published"] != True:
@@ -72,15 +70,16 @@ async def get_isk_for_sp_options(
                 continue
             duration = dogma[330]
 
-            try:
-                expiry = dogma[2422]
-            except KeyError:
-                logger.info("NO EXPIRY Type ID %d => %s", item_type_id, res["name"])
-                continue  # expired
+            if item_type_id not in (ItemTypes.MasterAtArms.value, ItemTypes.Expert.value):
+                try:
+                    expiry = dogma[2422]
+                except KeyError:
+                    logger.info("NO EXPIRY Type ID %d => %s", item_type_id, res["name"])
+                    continue  # expired
 
-            if now > expiry * (24 * 60 * 60):
-                logger.info("EXPIRED Type ID %d => %s", item_type_id, res["name"])
-                continue  # expired
+                if now > expiry * (24 * 60 * 60):
+                    logger.info("EXPIRED Type ID %d => %s", item_type_id, res["name"])
+                    continue  # expired
 
             price = await esi.get_best_price(
                 fs, "sell", citadel_ids, 10000002, item_type_id
