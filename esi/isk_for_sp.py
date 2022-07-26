@@ -30,11 +30,11 @@ async def get_isk_for_sp_options(
 
         accelerators = []
 
-        res = await esi.search(["inventory_type"], "Cerebral Accelerator")
+        accel_type_ids = (await esi.get_market_group(2487))["types"]
         logger.info(
-            "Cerebral Accelerator search yielded %d results", len(res["inventory_type"])
+            "Cerebral Accelerator search yielded %d results", len(accel_type_ids)
         )
-        for item_type_id in res["inventory_type"]:
+        for item_type_id in accel_type_ids:
             res = await esi.get_type_information(item_type_id)
             res = res.result
             if res["published"] != True:
@@ -43,7 +43,7 @@ async def get_isk_for_sp_options(
             if "Expired" in res["name"]:
                 logger.info("EXPIRED Type ID %d => %s", item_type_id, res["name"])
                 continue
-            if res.get("market_group_id") != 2487:
+            if res.get("market_group_id") != 2487:  # should be unreachable now...
                 logger.info(
                     "NOT IN MARKET 2487 (actually in %r) Type ID %d => %s",
                     res.get("market_group_id"),
@@ -70,7 +70,10 @@ async def get_isk_for_sp_options(
                 continue
             duration = dogma[330]
 
-            if item_type_id not in (ItemTypes.MasterAtArms.value, ItemTypes.Expert.value):
+            if item_type_id not in (
+                ItemTypes.MasterAtArms.value,
+                ItemTypes.Expert.value,
+            ):
                 try:
                     expiry = dogma[2422]
                 except KeyError:
