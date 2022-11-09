@@ -118,6 +118,7 @@ _methods = (
     _esi(1, "universe/groups/{}", "get_item_group_information"),
     _esi(1, "universe/categories/{}", "get_item_category_information"),
     _esi(1, "markets/{}/orders/", "_get_region_orders", True),
+    _esi(1, "markets/groups/{}", "get_market_group"),
 )
 
 _STC = {"session_type": SessionType.character}
@@ -178,18 +179,6 @@ class PublicESISession:
 
     async def __aexit__(self, a, b, c):
         return await self._session.__aexit__(a, b, c)
-
-    async def search(self, categories: List[str], search: str, strict: bool = False):
-        async with self._session.get(
-            self._esi_url + "/v2/search/",
-            params={
-                "search": search,
-                "categories": ",".join(categories),
-                "strict": "true" if strict else "false",
-            },
-        ) as resp:
-            resp.raise_for_status()
-            return await resp.json()
 
     async def get_market_orders(
         self, region_id: int, buy_sell: str, type_id: int = None

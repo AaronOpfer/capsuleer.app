@@ -3,11 +3,11 @@ import pprint
 import operator
 import enum
 
-from esi.esi import ESISession
+from esi.esi import PublicESISession
 
 
 async def amain():
-    esi = ESISession(client_id, client_secret_key)
+    esi = PublicESISession("https://esi.evetech.net")
     stations = set()
     async with esi:
         forge_consts = (await esi.get_region_information(10000002))["constellations"]
