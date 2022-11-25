@@ -1,7 +1,7 @@
 supervisord.log
 supervisord.pid
 node_modules
-static/
+/static/
 src/skills.json
 __pycache__
 .idea
