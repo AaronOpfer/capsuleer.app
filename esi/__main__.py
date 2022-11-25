@@ -350,6 +350,9 @@ class Server:
             character_id = fut_to_id.pop(future)
             try:
                 result = future.result()
+            except CharacterNeedsUpdated:  # soften this for reporting purposes
+                logger.info("character %d needs refresh token updated", character_id)
+                result = None
             except Exception:
                 logger.exception("error downloading %d skill queue", character_id)
                 result = None
