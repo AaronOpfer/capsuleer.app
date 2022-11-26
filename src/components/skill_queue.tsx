@@ -61,10 +61,12 @@ export default class SkillQueue extends React.Component<SkillQueueProps, {}> {
         let sp_costs = 0;
         const skill_doms = data.skill_queue.map((queue_item, queue_item_index) => {
             const skill = skill_data.skill(queue_item.id);
+            const previous_level_sp = sp_required(queue_item.level - 1, skill.rank);
+            const char_skill_sp = data.skills[queue_item.id].sp;
+
             sp_costs +=
                 sp_required(queue_item.level, skill.rank) -
-                sp_required(queue_item.level - 1, skill.rank) -
-                data.skills[queue_item.id].sp;
+                Math.max(previous_level_sp, char_skill_sp);
             const trained_level = data.skill_level(queue_item.id);
             const duration = queue_item.duration;
             const duration_as_percentage = (100 * duration) / queue_total_duration;
