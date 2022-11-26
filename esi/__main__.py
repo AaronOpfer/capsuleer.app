@@ -112,13 +112,17 @@ class Server:
         "_callback_source",
         "db",
         "_base_url",
+        "_internal_account_id",
     )
 
-    def __init__(self, base_url, esi_url, client_id, client_secret_key):
+    def __init__(
+        self, base_url, esi_url, client_id, client_secret_key, internal_account_id
+    ):
         self._base_url = base_url
         self._client_id = client_id
         self._esi = ESISession(esi_url, client_id, client_secret_key)
         self._cached_skill_trades = 0, None
+        self._internal_account_id = internal_account_id
         with open("static/callback.html") as f:
             self._callback_source = f.read()
 
@@ -294,7 +298,14 @@ class Server:
     async def _skill_trade_task(self):
         while True:
             try:
-                data = await get_isk_for_sp_options(self._esi)
+                characters = await self.db.get_characters(self._internal_account_id)
+                if not characters:
+                    raise Exception("No internal account characters!")
+                character = characters[0]
+                session = await self.db.get_session(
+                    self._internal_account_id, character.id
+                )
+                data = await get_isk_for_sp_options(self._esi, session)
                 expires = time.monotonic() + 30 * 60
                 self._cached_skill_trades = expires, data
             except Exception:
@@ -513,6 +524,7 @@ async def amain():
         config["esi"]["esi_url"],
         config["esi"]["client_id"],
         config["esi"]["client_secret_key"],
+        int(config["esi"]["internal_account_id"]),
     )
     await server.run(
         config["http"]["listen_socket"],

@@ -120,42 +120,6 @@ class ABCSession(metaclass=abc.ABCMeta):
         pass
 
 
-class FileSession(ABCSession):
-    __slots__ = "_session", "_lock"
-
-    def __init__(self, session):
-        self._session = session
-        self._lock = asyncio.Lock()
-
-    @property
-    def access_token(self) -> AccessToken:
-        try:
-            token = self._session["access_token"]
-        except KeyError:
-            raise NoTokenAvailable() from None
-        return AccessToken(
-            token[0], datetime.datetime.fromtimestamp(token[1]), token[2]
-        )
-
-    async def set_access_token(self, new_token: AccessToken):
-        self._session["access_token"] = [
-            new_token[0],
-            new_token[1].timestamp(),
-            new_token[2],
-        ]
-
-    @property
-    def character(self):
-        return Character._make(self._session["character"])
-
-    @character.setter
-    def character(self, new_character: Character):
-        self._session["character"] = new_character
-
-    async def lock_for_token_update(self):
-        return self._lock
-
-
 class Response:
     __slots__ = "_result", "_expires", "_last_modified", "headers"
 
