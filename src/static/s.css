@@ -165,11 +165,15 @@ footer { text-align: center; }
     display: block;
 }
 
-.character_select.invalid {
+.character_select_container {
     position: relative;
 }
 
-.character_select.invalid::before {
+.character_select.invalid {
+    background: rgba(127, 25, 25, 0.4);
+}
+
+.character_select.invalid > .character_select_container::before {
     content: "!";
     position: absolute;
     color: white;
@@ -314,6 +318,11 @@ footer { text-align: center; }
 }
 
 .char_title {
+    text-align: center;
+}
+
+.character_expired {
+    margin: 1em;
     text-align: center;
 }
 

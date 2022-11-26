@@ -1,10 +1,14 @@
 import React from "react";
 
-export default class CharacterExpired extends React.PureComponent<{}, {}> {
+interface CharacterExpiredProps {
+    character_name: string;
+}
+
+export default class CharacterExpired extends React.PureComponent<CharacterExpiredProps, {}> {
     render() {
         return (
-            <div className="characterExpird">
-                <h3>Log in with this Character again</h3>
+            <div className="character_expired">
+                <h3>Log in with {this.props.character_name} again</h3>
                 <a href="/auth" target="_blank">
                     <img src="https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-white-large.png" />
                 </a>

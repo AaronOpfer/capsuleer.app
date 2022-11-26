@@ -80,8 +80,8 @@ export default class CharacterSelect extends React.PureComponent<
         const p = this.props;
         return (
             <div
-                onMouseEnter={this.props.valid ? this.on_mouse_enter : undefined}
-                onMouseLeave={this.props.valid ? this.on_mouse_leave : undefined}
+                onMouseEnter={this.on_mouse_enter}
+                onMouseLeave={this.on_mouse_leave}
                 onClick={() => p.on_click(p.id, p.name, p.valid)}
                 className={
                     "character_select" +
@@ -89,11 +89,13 @@ export default class CharacterSelect extends React.PureComponent<
                     (p.valid ? "" : " invalid")
                 }
             >
-                <img src={character_url(p.id, 64)} width="64" height="64" />
+                <div className="character_select_container">
+                        <img src={character_url(p.id, 64)} width="64" height="64" />
+                </div>
                 {this.props.valid ? (
                     <SkillProgress current_time={p.current_time} training={p.training} />
                 ) : null}
-                {this.props.valid && this.state.is_hovered ? <CharacterHover {...p} /> : null}
+                {this.state.is_hovered ? <CharacterHover {...p} /> : null}
             </div>
         );
     }
@@ -101,6 +103,14 @@ export default class CharacterSelect extends React.PureComponent<
 
 class CharacterHover extends React.PureComponent<CharacterSelectProps, {}> {
     render() {
+        if (!this.props.valid) {
+            return (
+                <div className="character_select_hover">
+                    <h4>{this.props.name}</h4>
+                    <span>Log into this character again</span>
+                </div>
+            );
+        }
         const t = this.props.training;
         if (t === undefined) {
             return (

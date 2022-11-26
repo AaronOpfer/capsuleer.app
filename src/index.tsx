@@ -256,7 +256,7 @@ class AuthenticatedContent extends React.Component<{}, AuthenticatedContentState
                 invalidate_character={this.invalidate_character}
             />
         ) : (
-            <CharacterExpired />
+            <CharacterExpired character_name={this.state.character_name!} />
         );
 
         return (
@@ -336,7 +336,7 @@ class Application extends React.Component<{}, ApplicationState> {
 }
 
 function render() {
-    ReactDOM.render(<Application />, document.querySelector("#app"));
+    ReactDOM.render(<React.StrictMode><Application /></React.StrictMode>, document.querySelector("#app"));
 }
 
 if (document.readyState != "loading") {
