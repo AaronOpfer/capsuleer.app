@@ -49,11 +49,11 @@ export function format_with_decimals(num: number, dec: number): string {
     });
 }
 
-export function format_duration(seconds: number) {
+export function format_duration(seconds: number, show_seconds?: boolean) {
     const d = Math.floor(seconds / 86400);
     const h = Math.floor((seconds % 86400) / 3600);
     const m = Math.floor(((seconds % 86400) % 3600) / 60);
-    const s = ((seconds % 86400) % 3600) % 60;
+    const s = show_seconds === false ? 0 : ((seconds % 86400) % 3600) % 60;
     return [
         [d, "d"],
         [h, "h"],

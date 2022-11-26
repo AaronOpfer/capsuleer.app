@@ -336,7 +336,12 @@ class Application extends React.Component<{}, ApplicationState> {
 }
 
 function render() {
-    ReactDOM.render(<React.StrictMode><Application /></React.StrictMode>, document.querySelector("#app"));
+    ReactDOM.render(
+        <React.StrictMode>
+            <Application />
+        </React.StrictMode>,
+        document.querySelector("#app")
+    );
 }
 
 if (document.readyState != "loading") {

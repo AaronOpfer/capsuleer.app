@@ -35,3 +35,30 @@ export function sp_required(level: number, rank: number): number {
     }
     return [0, 250, 1414, 8000, 45254, 256000][level] * rank;
 }
+export function calculate_number_of_injectors(
+    sp: number,
+    unallocated_sp: number,
+    desired: number
+): number {
+    desired -= unallocated_sp;
+    if (desired <= 0) {
+        return 0;
+    }
+    let injectors = 0;
+    while (true) {
+        let si_effectiveness = 150000;
+        if (sp < 5000000) {
+            si_effectiveness = 500000;
+        } else if (sp < 50000000) {
+            si_effectiveness = 400000;
+        } else if (sp < 80000000) {
+            si_effectiveness = 300000;
+        }
+        if (desired < si_effectiveness) {
+            injectors += desired / si_effectiveness;
+            return injectors;
+        }
+        injectors += 1;
+        desired -= si_effectiveness;
+    }
+}

@@ -521,7 +521,25 @@ footer { text-align: center; }
 }
 
 .skill_queue_header {
-    font-size: 0.8em;
+    font-size: 0.85em;
+    display: flex;
+    line-height: 16px;
+}
+
+.skill_queue_duration {
+    flex-grow: 1;
+}
+
+.skill_queue_sp_info {
+    text-align: right;
+}
+
+.skill_queue_injectors {
+    margin-right: 2em;
+}
+
+.skill_queue_injectors > img {
+    vertical-align: bottom;
 }
 
 .skill_queue_item {
