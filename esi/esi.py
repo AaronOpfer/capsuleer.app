@@ -5,7 +5,7 @@ import datetime
 import logging
 import functools
 import random
-from typing import Tuple, List
+from typing import Tuple
 
 import aiohttp
 from .types import (
@@ -187,11 +187,11 @@ class PublicESISession:
         if type_id is not None:
             params["type_id"] = type_id
 
-        orders = []
         while True:
             params["page"] += 1
             page = await self._get_region_orders(region_id, params=params)
-            orders += page
+            for item in page:
+                yield item
             if len(page) < 1000:
                 logging.info(
                     "get_market_orders(%r, %r, %r) made %d requests",
@@ -200,7 +200,7 @@ class PublicESISession:
                     type_id,
                     params["page"],
                 )
-                return orders
+                return
 
     get_forge_orders = functools.partialmethod(get_market_orders, 10_000_002)
 
@@ -370,14 +370,19 @@ class ESISession(PublicESISession):
         Retrieves the location IDs for citadels in The Forge with markets.
         Done by scanning the Jita buy orders (expensive!)
         """
-        orders = await self.get_forge_orders("buy")
-        return {o["location_id"] for o in orders} - forge_npc_station_ids
+        orders = self.get_forge_orders("buy")
+        return {o["location_id"] async for o in orders} - forge_npc_station_ids
 
     @_requires_session
     async def get_best_price(self, session, buy_sell, citadel_ids, region_id, type_id):
         comparator = max if buy_sell == "buy" else min
-        orders = await self.get_market_orders(region_id, buy_sell, type_id)
-        current_best = comparator(o["price"] for o in orders) if orders else None
+        orders = self.get_market_orders(region_id, buy_sell, type_id)
+        current_best = None
+        async for order in orders:
+            if current_best is None:
+                current_best = order["price"]
+            else:
+                current_best = comparator(current_best, order["price"])
         is_buy_order = buy_sell == "buy"
 
         for citadel_id in citadel_ids:
