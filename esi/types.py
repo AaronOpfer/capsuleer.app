@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 from email.utils import parsedate_to_datetime
 import abc
 import datetime
@@ -102,12 +102,12 @@ class ABCSession(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    async def set_access_token(self, new_token: AccessToken):
+    async def set_access_token(self, new_token: Optional[AccessToken]):
         pass
 
     @property
     @abc.abstractmethod
-    def character(self) -> AccessToken:
+    def character(self) -> Character:
         pass
 
     @character.setter

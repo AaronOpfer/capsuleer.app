@@ -11,7 +11,7 @@ import json
 import functools
 import datetime
 
-from typing import List
+from typing import List, Tuple
 
 import aiohttp
 import aiohttp.web
@@ -328,7 +328,7 @@ class Server:
             else {"Cache-Control": f"public, max-age={time_until_expiry}"},
         )
 
-    async def _characters(self, request) -> List[Character]:
+    async def _characters(self, request) -> Tuple[int, List[Character]]:
         account_id = await get_account_id(request)
         characters = await self.db.get_characters(account_id)
         if not characters:

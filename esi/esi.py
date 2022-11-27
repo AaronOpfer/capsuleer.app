@@ -5,7 +5,7 @@ import datetime
 import logging
 import functools
 import random
-from typing import Tuple
+from typing import Tuple, Optional, Dict
 
 import aiohttp
 from .types import (
@@ -35,6 +35,21 @@ def _requires_session(f):
     return wrapper
 
 
+def _make_header_from_token(token: AccessToken):
+    return {
+        "User-Agent": "capsuleer.app me@aaronopfer.com",
+        "Host": "esi.evetech.net",
+        "Accept": "application/json",
+        "Authorization": "Bearer %s" % token.access_token,
+    }
+
+
+def _make_header_from_session(session: ABCSession):
+    headers = _make_header_from_token(session.access_token)
+    headers["X-Character"] = session.character.name
+    return headers
+
+
 class SessionType(enum.Enum):
     none = 0
     headers = 1
@@ -42,7 +57,11 @@ class SessionType(enum.Enum):
 
 
 def _esi(
-    version, url_format, name, accepts_params=False, session_type=SessionType.none
+    version: int,
+    url_format: str,
+    name: str,
+    session_type: SessionType = SessionType.none,
+    accepts_params: bool = False,
 ):
     if accepts_params is not True and accepts_params is not False:
         raise TypeError("accepts_params must be a boolean")
@@ -50,15 +69,14 @@ def _esi(
         raise TypeError("version must be an integer")
 
     accepted_arg_count = len(url_format.split("{}")) - 1
-    url_format = (f"/v{version}/" + url_format).format
+    url_format_func = (f"/v{version}/" + url_format).format
 
-    if session_type is not SessionType.none:
-        accepted_arg_count += 1  # takes a session argument
+    if session_type is SessionType.headers:
+        accepted_arg_count += 1  # takes a hidden session argument
 
-    if session_type is SessionType.character:
-        accepted_arg_count -= 1  # fills first arg with character_id
-
-    async def inner(self, *args, params=None):
+    async def inner(
+        self: "PublicESISession", *args, params: Optional[Dict[str, str]] = None
+    ) -> Response:
         if accepts_params is False and params is not None:
             raise ValueError(f"{name} does not accept parameters")
 
@@ -71,12 +89,12 @@ def _esi(
         headers = {}
         if session_type is not SessionType.none:
             session, *args = args
-            headers = self._make_header_from_session(session)
+            headers = _make_header_from_session(session)
             if session_type is SessionType.character:
                 args = session.character.id, *args
 
         error_statuses = frozenset({502, 503, 504})
-        url = self._esi_url + url_format(*args)
+        url = self._esi_url + url_format_func(*args)
 
         attempts = range(3)
         for attempt in attempts:
@@ -99,40 +117,17 @@ def _esi(
                 )
                 await asyncio.sleep(sleep_length)
 
-            # For the last attempt, don't use try..except.
-            async with self._session.get(
-                url, raise_for_status=True, headers=headers, params=params
-            ) as resp:
-                res = await resp.json()
-                return Response(res, resp)
+        # For the last attempt, don't use try..except.
+        async with self._session.get(
+            url, raise_for_status=True, headers=headers, params=params
+        ) as resp:
+            res = await resp.json()
+            return Response(res, resp)
 
     inner.__name__ = name
+    if session_type is not SessionType.none:
+        return _requires_session(inner)
     return inner
-
-
-_methods = (
-    _esi(3, "universe/types/{}", "get_type_information"),
-    _esi(1, "universe/regions/{}", "get_region_information"),
-    _esi(1, "universe/constellations/{}", "get_constellation_information"),
-    _esi(4, "universe/systems/{}", "get_system_information"),
-    _esi(1, "universe/groups/{}", "get_item_group_information"),
-    _esi(1, "universe/categories/{}", "get_item_category_information"),
-    _esi(1, "markets/{}/orders/", "_get_region_orders", True),
-    _esi(1, "markets/groups/{}", "get_market_group"),
-)
-
-_STC = {"session_type": SessionType.character}
-_STH = {"session_type": SessionType.headers}
-
-_session_methods = (
-    _esi(4, "characters/{}/skills", "get_skills", **_STC),
-    _esi(2, "characters/{}/skillqueue/", "get_skill_queue", **_STC),
-    _esi(1, "characters/{}/wallet", "get_wallet_balance", **_STC),
-    _esi(6, "characters/{}/wallet/journal/", "get_wallet_journal", **_STC),
-    _esi(1, "characters/{}/attributes/", "get_attributes", **_STC),
-    _esi(1, "characters/{}/implants/", "get_implants", **_STC),
-    _esi(1, "markets/structures/{}", "_get_structure_market", True, **_STH),
-)
 
 
 class PublicESISession:
@@ -181,32 +176,42 @@ class PublicESISession:
         return await self._session.__aexit__(a, b, c)
 
     async def get_market_orders(
-        self, region_id: int, buy_sell: str, type_id: int = None
+        self, region_id: int, buy_sell: str, type_id: Optional[int] = None
     ):
-        params = {"order_type": buy_sell, "page": 0}
+        page = 0
+        params = {"order_type": buy_sell}
         if type_id is not None:
-            params["type_id"] = type_id
+            params["type_id"] = str(type_id)
 
         while True:
-            params["page"] += 1
-            page = await self._get_region_orders(region_id, params=params)
-            for item in page:
+            page += 1
+            orders = await self._get_region_orders(
+                region_id, params={"page": str(page), **params}
+            )
+            for item in orders:
                 yield item
-            if len(page) < 1000:
+            if len(orders) < 1000:
                 logging.info(
                     "get_market_orders(%r, %r, %r) made %d requests",
                     region_id,
                     buy_sell,
                     type_id,
-                    params["page"],
+                    page,
                 )
                 return
 
     get_forge_orders = functools.partialmethod(get_market_orders, 10_000_002)
 
-    for _method in _methods:
-        locals()[_method.__name__] = _method
-    del _method
+    # fmt: off
+    get_type_information = _esi(3, "universe/types/{}", "get_type_information")
+    get_region_information = _esi(1, "universe/regions/{}", "get_region_information")
+    get_constellation_information = _esi(1, "universe/constellations/{}", "get_constellation_information")
+    get_system_information = _esi(4, "universe/systems/{}", "get_system_information")
+    get_item_group_information = _esi(1, "universe/groups/{}", "get_item_group_information")
+    get_item_category_information = _esi(1, "universe/categories/{}", "get_item_category_information")
+    _get_region_orders = _esi(1, "markets/{}/orders/", "_get_region_orders", accepts_params=True)
+    get_market_group = _esi(1, "markets/groups/{}", "get_market_group")
+    # fmt: on
 
 
 class ESISession(PublicESISession):
@@ -296,27 +301,10 @@ class ESISession(PublicESISession):
                 )
             )
 
-    @staticmethod
-    def _make_header_from_token(token: AccessToken):
-        return {
-            "User-Agent": "capsuleer.app me@aaronopfer.com",
-            "Host": "esi.evetech.net",
-            "Accept": "application/json",
-            "Authorization": "Bearer %s" % token.access_token,
-        }
-
-    @classmethod
-    def _make_header_from_session(cls, session: ABCSession):
-        headers = cls._make_header_from_token(session.access_token)
-        headers["X-Character"] = session.character.name
-        return headers
-
-    async def get_character(
-        self, access_token: AccessToken
-    ) -> Tuple[AccessToken, Character, str]:
+    async def get_character(self, access_token: AccessToken) -> Tuple[Character, str]:
         async with self._session.get(
             self._esi_url + "/verify/",
-            headers=self._make_header_from_token(access_token),
+            headers=_make_header_from_token(access_token),
         ) as resp:
             resp.raise_for_status()
             result = await resp.json()
@@ -324,10 +312,6 @@ class ESISession(PublicESISession):
                 Character(int(result["CharacterID"]), result["CharacterName"], True),
                 result["CharacterOwnerHash"],
             )
-
-    for _method in _session_methods:
-        locals()[_method.__name__] = _requires_session(_method)
-    del _method
 
     @_requires_session
     async def ensure_session(self, session: ABCSession):
@@ -396,3 +380,15 @@ class ESISession(PublicESISession):
             current_best = comparator([current_best, *[p for p in order_prices]])
 
         return current_best
+
+    _STC = SessionType.character
+    _STH = SessionType.headers
+    # fmt: off
+    get_skills = _esi(4, "characters/{}/skills", "get_skills", _STC)
+    get_skill_queue = _esi(2, "characters/{}/skillqueue/", "get_skill_queue", _STC)
+    get_wallet_balance = _esi(1, "characters/{}/wallet", "get_wallet_balance", _STC)
+    get_wallet_journal = _esi(6, "characters/{}/wallet/journal/", "get_wallet_journal", _STC)
+    get_attributes = _esi(1, "characters/{}/attributes/", "get_attributes", _STC)
+    get_implants = _esi(1, "characters/{}/implants/", "get_implants", _STC)
+    _get_structure_market = _esi(1, "markets/structures/{}", "_get_structure_market", _STH, True)
+    # fmt: on
