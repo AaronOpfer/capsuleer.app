@@ -350,7 +350,7 @@ class ESISession(PublicESISession):
                     session, structure_id, params=params
                 )
             except aiohttp.ClientResponseError as e:
-                if e.code == 403:
+                if e.status == 403:
                     logging.info("citadel %d is forbidden to us", structure_id)
                     self._bad_citadels.add(structure_id)
                     return []

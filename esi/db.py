@@ -100,6 +100,13 @@ class Database:
         self._connargs = kwargs
         self._cache = weakref.WeakValueDictionary()
 
+    async def __aenter__(self):
+        await self.connect()
+        return self
+
+    async def __aexit__(self, a, b, c):
+        await self._pool.close()
+
     async def connect(self):
         self._pool = await asyncpg.create_pool(**self._connargs)
 

@@ -172,7 +172,7 @@ class Server:
             "esi-clones.read_implants.v1"
             "&state=%d"
         ) % (self._base_url, self._client_id, session["state"])
-        return aiohttp.web.HTTPFound(url)
+        raise aiohttp.web.HTTPFound(url)
 
     async def logout(self, request):
         session = await get_session(request)
@@ -385,7 +385,7 @@ class Server:
 
         while transmitted_count != expected_count:
             await asyncio.wait(
-                (asyncio.sleep(0.2), all_done_future),
+                (asyncio.create_task(asyncio.sleep(0.2)), all_done_future),
                 return_when=asyncio.FIRST_COMPLETED,
             )
             going_to_transmit_count = len(results_to_transmit)
@@ -431,11 +431,9 @@ class Server:
     @staticmethod
     def _character_training_result(character_id, result):
         if result is None:
-            return f"{character_id}\n".encode("utf-8")
+            return f"{character_id}\n".encode()
         skill_id, level, sp, started, ended = result
-        return f"{character_id}:{skill_id}:{level}:{sp}:{started}:{ended}\n".encode(
-            "utf-8"
-        )
+        return f"{character_id}:{skill_id}:{level}:{sp}:{started}:{ended}\n".encode()
 
     async def run(self, listen_sock_path, dbargs, cookie_secret_key):
         app = aiohttp.web.Application()
@@ -445,8 +443,8 @@ class Server:
                 aiohttp.web.get("/callback", self.esi_callback),
                 aiohttp.web.get("/characters", self.characters),
                 aiohttp.web.get("/characters/training", self.characters_training),
-                aiohttp.web.get("/{char:\d+}/skills", self.skills),
-                aiohttp.web.get("/{char:\d+}/wallet", self.wallet),
+                aiohttp.web.get(r"/{char:\d+}/skills", self.skills),
+                aiohttp.web.get(r"/{char:\d+}/wallet", self.wallet),
                 aiohttp.web.get("/skilltrades", self.skill_trades),
                 aiohttp.web.get("/logout", self.logout),
                 aiohttp.web.get("/cause_an_error", raiser),
@@ -459,11 +457,8 @@ class Server:
                 cookie_secret_key, cookie_name="s", max_age=60 * 60 * 24 * 30  # 30 days
             ),
         )
-        self.db = Database(**dbargs)
-        await self.db.connect()
-        async with self._esi:
+        async with Database(**dbargs) as self.db, self._esi:
             task = asyncio.get_event_loop().create_task(self._skill_trade_task())
-            task.add_done_callback(lambda f: f.result())
             runner = aiohttp.web.AppRunner(
                 app, handle_signals=True, access_log_class=AccessLogger
             )
@@ -473,12 +468,12 @@ class Server:
                 await site.start()
                 subprocess.run(["setfacl", "-m", "u:www-data:rwx", listen_sock_path])
                 while True:
-                    await asyncio.sleep(3600)
+                    await task
             finally:
                 await runner.cleanup()
 
 
-def raiser():
+async def raiser():
     raise RuntimeError("It raised")
 
 
@@ -534,14 +529,7 @@ async def amain():
 
 
 def main():
-    loop = asyncio.get_event_loop()
-    try:
-        return loop.run_until_complete(amain())
-    finally:
-        try:
-            loop.run_until_complete(loop.shutdown_asyncgens())
-        finally:
-            loop.close()
+    asyncio.run(amain())
 
 
 if __name__ == "__main__":

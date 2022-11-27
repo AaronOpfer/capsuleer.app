@@ -1,0 +1,5 @@
+aiohttp >=3.8.3,<4
+aiohttp-session >2.11.0,<3
+asyncpg
+cryptography
+sentry-sdk >=1.11.1,<2
