@@ -5,7 +5,6 @@ import datetime
 import logging
 import functools
 import random
-from typing import Tuple, Optional, Dict
 
 import aiohttp
 from .types import (
@@ -56,6 +55,48 @@ class SessionType(enum.Enum):
     character = 2
 
 
+RETRY_ERROR_STATUSES = frozenset({502, 503, 504})
+
+
+async def request_with_retry(
+    session: aiohttp.ClientSession,
+    url: str,
+    headers: dict[str, str],
+    params: dict[str, str] | None,
+) -> Response:
+    """
+    The ESI API will sometimes fail for no particular reason. When this
+    happens, retry the request again. We wait before retrying in order
+    to avoid contributing to a flood situation.
+    """
+    for attempt in range(3):
+        try:
+            async with session.get(
+                url, raise_for_status=True, headers=headers, params=params
+            ) as resp:
+                res = await resp.json()
+                return Response(res, resp)
+        except aiohttp.ClientResponseError as exc:
+            if exc.status not in RETRY_ERROR_STATUSES:
+                raise
+
+            sleep_length = 10 * attempt + random.randrange(5, 15)
+            logger.warning(
+                "GET %s hit %d, sleeping for %d and trying again",
+                url,
+                exc.status,
+                sleep_length,
+            )
+            await asyncio.sleep(sleep_length)
+
+    # For the last attempt, don't use try..except.
+    async with session.get(
+        url, raise_for_status=True, headers=headers, params=params
+    ) as resp:
+        res = await resp.json()
+        return Response(res, resp)
+
+
 def _esi(
     version: int,
     url_format: str,
@@ -75,7 +116,7 @@ def _esi(
         accepted_arg_count += 1  # takes a hidden session argument
 
     async def inner(
-        self: "PublicESISession", *args, params: Optional[Dict[str, str]] = None
+        self: "PublicESISession", *args, params: dict[str, str] | None = None
     ) -> Response:
         if accepts_params is False and params is not None:
             raise ValueError(f"{name} does not accept parameters")
@@ -93,36 +134,8 @@ def _esi(
             if session_type is SessionType.character:
                 args = session.character.id, *args
 
-        error_statuses = frozenset({502, 503, 504})
         url = self._esi_url + url_format_func(*args)
-
-        attempts = range(3)
-        for attempt in attempts:
-            try:
-                async with self._session.get(
-                    url, raise_for_status=True, headers=headers, params=params
-                ) as resp:
-                    res = await resp.json()
-                    return Response(res, resp)
-            except aiohttp.ClientResponseError as exc:
-                if exc.status not in error_statuses:
-                    raise
-
-                sleep_length = 10 * attempt + random.randrange(5, 15)
-                logger.warning(
-                    "GET %s hit %d, sleeping for %d and trying again",
-                    url,
-                    exc.status,
-                    sleep_length,
-                )
-                await asyncio.sleep(sleep_length)
-
-        # For the last attempt, don't use try..except.
-        async with self._session.get(
-            url, raise_for_status=True, headers=headers, params=params
-        ) as resp:
-            res = await resp.json()
-            return Response(res, resp)
+        return await request_with_retry(self._session, url, headers, params)
 
     inner.__name__ = name
     if session_type is not SessionType.none:
@@ -176,7 +189,7 @@ class PublicESISession:
         return await self._session.__aexit__(a, b, c)
 
     async def get_market_orders(
-        self, region_id: int, buy_sell: str, type_id: Optional[int] = None
+        self, region_id: int, buy_sell: str, type_id: int | None = None
     ):
         page = 0
         params = {"order_type": buy_sell}
@@ -301,7 +314,7 @@ class ESISession(PublicESISession):
                 )
             )
 
-    async def get_character(self, access_token: AccessToken) -> Tuple[Character, str]:
+    async def get_character(self, access_token: AccessToken) -> tuple[Character, str]:
         async with self._session.get(
             self._esi_url + "/verify/",
             headers=_make_header_from_token(access_token),

@@ -1,7 +1,6 @@
 import operator
 import logging
 import datetime
-from typing import Tuple, List
 
 from .esi import ESISession
 from .types import ABCSession, ItemTypes, AcceleratorInfo
@@ -15,7 +14,7 @@ get_accel_magnitudes = operator.itemgetter(*range(175, 180))
 
 async def get_isk_for_sp_options(
     esi: ESISession, fs: ABCSession
-) -> Tuple[float, float, List[AcceleratorInfo]]:
+) -> tuple[float, float, list[AcceleratorInfo]]:
     now = datetime.datetime.utcnow().timestamp()
     citadel_ids = await esi.get_forge_market_citadel_ids()
     lsi_price = await esi.get_best_price(

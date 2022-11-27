@@ -1,10 +1,9 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple
 from email.utils import parsedate_to_datetime
 import abc
 import datetime
 import enum
 import json
-import asyncio
 import logging
 from operator import attrgetter
 
@@ -102,7 +101,7 @@ class ABCSession(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    async def set_access_token(self, new_token: Optional[AccessToken]):
+    async def set_access_token(self, new_token: AccessToken | None):
         pass
 
     @property
@@ -149,7 +148,7 @@ class Response:
         return expires
 
     @property
-    def last_modified(self):  # FIXME copy and paste of the above
+    def last_modified(self):
         last_modified = self._last_modified
         if type(last_modified) is datetime.datetime:
             return last_modified
