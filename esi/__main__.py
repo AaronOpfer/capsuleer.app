@@ -182,6 +182,7 @@ class Server:
     @sessionify
     async def wallet(self, session, request):
         journal = await self._esi.get_wallet_journal(session)
+        journal = [j for j in journal if j["amount"]]  # skip 0 ISK "fees"
         if not len(journal):
             return aiohttp.web.json_response((), dumps=dumps)
 
@@ -194,8 +195,6 @@ class Server:
                 idx = len(string_table)
                 string_table[the_str] = idx
                 return idx
-
-        journal = [j for j in journal if j["amount"]]  # skip 0 ISK "fees"
 
         first_date_int = int(dateparse(journal[0]["date"]).timestamp())
         etag = f'W/"{first_date_int}"'
