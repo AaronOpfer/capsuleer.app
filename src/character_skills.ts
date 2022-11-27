@@ -66,13 +66,8 @@ export default class CharacterSkills {
         const implant_bonuses = skill_json[7];
         const unboosted_attributes = current_attributes.map((v, i) => v - implant_bonuses[i]);
         this.accelerator_amount = (unboosted_attributes.reduce((a, b) => a + b, 0) - 99) / 5;
-        [
-            this.intelligence,
-            this.memory,
-            this.perception,
-            this.willpower,
-            this.charisma,
-        ] = current_attributes.map((x) => x - this.accelerator_amount);
+        [this.intelligence, this.memory, this.perception, this.willpower, this.charisma] =
+            current_attributes.map((x) => x - this.accelerator_amount);
         this.wallet_balance = skill_json[4];
         this.unallocated_sp = skill_json[8] || 0;
         this.biology_implant_bonus = {0: 1, 1: 1.05, 2: 1.1}[skill_json[9]];

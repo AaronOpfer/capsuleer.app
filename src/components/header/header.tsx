@@ -85,7 +85,7 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
             }
             delay = Math.min(earliest - now, delay);
         }
-        this.timeout = setTimeout(() => {
+        this.timeout = window.setTimeout(() => {
             this.timeout = undefined;
             this.update_time();
         }, delay);

@@ -2,18 +2,14 @@ const path = require('path');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const HtmlWebpackIncludeAssetsPlugin = require('html-webpack-include-assets-plugin');
+const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin');
 
 
 module.exports = {
-    externals: {
-        react: 'React',
-        'react-dom': 'ReactDOM',
-    },
+    cache: {type: "filesystem"},
     resolve: {
-        extensions: ['.ts', '.tsx'],
+        extensions: ['.ts', '.tsx', '.js', '.jsx'],
     },
     entry: "./src/index.tsx",
     output: {
@@ -34,35 +30,35 @@ module.exports = {
     },
     plugins: [
         new ForkTsCheckerWebpackPlugin({
-            memoryLimit: 256,
+            typescript: {memoryLimit: 256}
         }),
-        new CopyPlugin([{
-            from: 'src/static',
-            dest: '.',
-            ignore: '.*',
-            transform (content, path) {
-                if (path.endsWith(".css")) {
-                    return content.toString().replace(/(\s)\s+/g, '$1')
+        new CopyPlugin({
+            patterns: [
+                {
+                    from: 'src/static',
+                    to: '.',
+                    globOptions: {dot: true},
+                    transform (content, path) {
+                        if (path.endsWith(".css")) {
+                            return content.toString().replace(/(\s)\s+/g, '$1')
+                        }
+                        return content
+                    }
                 }
-                return content
-            }
-        }]),
+            ]
+        }),
         new HtmlWebpackPlugin({
             template: 'src/index.html',
             inject: 'head',
             hash: true,
         }),
-        new ScriptExtHtmlWebpackPlugin({
-            defaultAttribute: 'defer',
-        }),
-        new HtmlWebpackIncludeAssetsPlugin({
-            assets: ['s.css'],
+        new HtmlWebpackTagsPlugin({
+            tags: ['s.css'],
             append: false,
             hash: true,
         }),
         new CompressionPlugin({
             test: /\.(js|css|html|svg)(\?.*)?$/i,
-            cache: true
         }),
     ]
 };
