@@ -364,6 +364,8 @@ class Server:
             except CharacterNeedsUpdated:  # soften this for reporting purposes
                 logger.info("character %d needs refresh token updated", character_id)
                 result = None
+            except asyncio.CancelledError:  # soften this for reporting purposes
+                result = None
             except Exception:
                 logger.exception("error downloading %d skill queue", character_id)
                 result = None
@@ -383,27 +385,39 @@ class Server:
 
         await response.prepare(request)
 
-        while transmitted_count != expected_count:
-            await asyncio.wait(
-                (asyncio.create_task(asyncio.sleep(0.2)), all_done_future),
-                return_when=asyncio.FIRST_COMPLETED,
-            )
-            going_to_transmit_count = len(results_to_transmit)
-            if going_to_transmit_count:
-                response_segment = b""
-                for character_id, result in results_to_transmit:
-                    response_segment += self._character_training_result(
-                        character_id, result
-                    )
-                results_to_transmit = []
-                await response.write(response_segment)
-                transmitted_count += going_to_transmit_count
-                logger.debug(
-                    "transmitted %d/%d characters", transmitted_count, expected_count
+        try:
+            while transmitted_count != expected_count:
+                await asyncio.wait(
+                    (asyncio.create_task(asyncio.sleep(0.2)), all_done_future),
+                    return_when=asyncio.FIRST_COMPLETED,
                 )
+                going_to_transmit_count = len(results_to_transmit)
+                if going_to_transmit_count:
+                    response_segment = b""
+                    for character_id, result in results_to_transmit:
+                        response_segment += self._character_training_result(
+                            character_id, result
+                        )
+                    results_to_transmit = []
+                    await response.write(response_segment)
+                    transmitted_count += going_to_transmit_count
+                    logger.debug(
+                        "transmitted %d/%d characters",
+                        transmitted_count,
+                        expected_count,
+                    )
 
-        await response.write_eof()
-        return response
+            await response.write_eof()
+            return response
+        except asyncio.CancelledError:
+            for fut in fut_to_id.keys():
+                fut.cancel()
+            for fut in fut_to_id.keys():
+                try:
+                    await fut
+                except asyncio.CancelledError:
+                    pass
+            raise
 
     async def _single_character_training(self, account_id, character_id):
         session = await self.db.get_session(account_id, character_id)
