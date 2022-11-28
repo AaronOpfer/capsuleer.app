@@ -100,7 +100,6 @@ async def do_work(session):
                         skill_id,
                         data["group_id"],
                         data["name"],
-                        data["description"].replace("\r\n", "\n").strip(),
                         int(attribs[275]),
                         attrs[int(attribs[180]), int(attribs[181])],
                     )
@@ -115,14 +114,7 @@ async def do_work(session):
 
 
 def main():
-    loop = asyncio.get_event_loop()
-    try:
-        return loop.run_until_complete(amain())
-    finally:
-        try:
-            loop.run_until_complete(loop.shutdown_asyncgens())
-        finally:
-            loop.close()
+    asyncio.run(amain())
 
 
 if __name__ == "__main__":

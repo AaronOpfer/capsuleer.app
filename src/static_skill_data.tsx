@@ -4,7 +4,6 @@ export interface StaticSkill {
     readonly id: number,
     readonly category_id: number,
     readonly name: string,
-    readonly description: string,
     readonly rank: number,
     readonly attribute: number
 };
@@ -27,9 +26,8 @@ export class StaticSkillData {
                 id: skill[0],
                 category_id: skill[1],
                 name: skill[2],
-                description: skill[3],
-                rank: skill[4],
-                attribute: skill[5]
+                rank: skill[3],
+                attribute: skill[4]
             });
             (category_to_skills[skill[1]] = category_to_skills[skill[1]] || []).push(staticskill);
         }

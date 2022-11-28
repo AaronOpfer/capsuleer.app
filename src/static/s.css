@@ -470,6 +470,60 @@ footer { text-align: center; }
     align-items: center;
     font-size: 0.9em;
     width: 100%;
+    cursor: pointer;
+}
+
+.focused_skill {
+    margin: 1em;
+}
+
+.focused_skill_close {
+    height: 32px;
+    width: 32px;
+    font-size: 32px;
+    line-height: 32px;
+    text-align: center;
+    cursor: pointer;
+    font-family: monospace;
+}
+
+.focused_skill_details {
+    font-size: 0.8em;
+}
+
+.focused_skill_details > .rank::before {
+    content: "Rank: x";
+}
+.focused_skill_details > .sp::after {
+    content: " SP"
+}
+.focused_skill_details > .attribute_primary::before {
+    content: "Primary Attribute: ";
+}
+.focused_skill_details > .attribute_secondary::before {
+    content: "Secondary Attribute: ";
+}
+.focused_skill_details > .attribute_primary, .focused_skill_details > .attribute_secondary {
+    text-transform: capitalize;
+}
+.focused_skill_details > span {
+    margin: 4px;
+}
+
+.focused_skill_header {
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+}
+.focused_skill_header > h3 {
+    flex-grow: 1;
+}
+.focused_skill_header > h3 > img {
+    vertical-align: middle;
+}
+.focused_skill_description {
+    white-space: pre-wrap;
 }
 
 @media screen and (min-width: 800px) {

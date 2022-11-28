@@ -2,7 +2,7 @@ import React from "react";
 import CharacterSkills from "../character_skills";
 import {StaticSkill, skill_data} from "../static_skill_data";
 import {attribute_types, sp_required} from "../misc/sp";
-import {format_duration} from "../misc/formatting";
+import {format_duration, format_with_decimals} from "../misc/formatting";
 
 enum SkillsToDisplay {
     all_skills = 0,
@@ -15,24 +15,11 @@ enum SkillsSorting {
     level,
 }
 interface SkillCategoryProps {
-    onClick: any;
+    onClick: () => void;
     name: string;
     skills: StaticSkill[];
     expanded: boolean;
     id: number;
-}
-
-interface SkillProps {
-    sp_min: number | null;
-    training_level: number;
-    id: number;
-    category_id: number;
-    name: string;
-    description: string;
-    rank: number;
-    attribute: number;
-    level: number | undefined;
-    sp: number | undefined;
 }
 
 const single_attribute_doms = {
@@ -68,6 +55,97 @@ attribute_types.forEach((value, key) => {
     attribute_doms[key] = value.split("/").map((v) => single_attribute_doms[v]);
 });
 
+interface FocusedSkillProps {
+    skill_id: number;
+    onClose: () => void;
+}
+
+interface FocusedSkillState {
+    description: string | null;
+}
+
+class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState> {
+    constructor(props) {
+        super(props);
+        this.state = {description: null};
+    }
+
+    componentDidMount() {
+        this.fetch_skill_data();
+    }
+
+    componentDidUpdate(prevProps: FocusedSkillProps) {
+        if (this.props.skill_id != prevProps.skill_id) {
+            this.fetch_skill_data();
+        }
+    }
+
+    async fetch_skill_data() {
+        const skill_id = this.props.skill_id;
+        var response: Response;
+        // ESI API can just decide to fail sometimes, retrying can sometimes fix it.
+        response = await fetch(`https://esi.evetech.net/latest/universe/types/${skill_id}/`);
+        if (response.status > 502 && response.status < 504) {
+            response = await fetch(`https://esi.evetech.net/latest/universe/types/${skill_id}/`);
+        }
+        if (!response.ok) {
+            const body = await response.text();
+            throw Error(`ESI failed with ${response.status}: ${body}`);
+        }
+        const json = await response.json();
+        if (this.props.skill_id != skill_id) {
+            return;
+        }
+        this.setState({description: json.description});
+    }
+
+    render() {
+        const skill: StaticSkill = skill_data.skill(this.props.skill_id);
+        const attribs = attribute_types[skill.attribute].split("/");
+        return (
+            <div className="focused_skill">
+                <div className="focused_skill_header" onClick={() => this.props.onClose()}>
+                    <h3>
+                        <img
+                            width={32}
+                            height={32}
+                            src="https://images.evetech.net/types/3452/icon?size=64"
+                        />
+                        {skill.name}
+                    </h3>
+                    <div className="focused_skill_close">x</div>
+                </div>
+                <div className="focused_skill_details">
+                    <span className="rank">{skill.rank}</span>
+                    <span className="sp">{format_with_decimals(sp_required(5, skill.rank), 0)}</span>
+                    <span className="attribute_primary">{attribs[0]}</span>
+                    <span className="attribute_secondary">{attribs[1]}</span>
+                </div>
+                <p className="focused_skill_description">
+                    {this.state.description === null ? (
+                        <img width={64} height={64} src="s/loading.svg" />
+                    ) : (
+                        this.state.description
+                    )}
+                </p>
+            </div>
+        );
+    }
+}
+
+interface SkillProps {
+    onClick: () => void;
+    sp_min: number | null;
+    training_level: number;
+    id: number;
+    category_id: number;
+    name: string;
+    rank: number;
+    attribute: number;
+    level: number | undefined;
+    sp: number | undefined;
+}
+
 class Skill extends React.PureComponent<SkillProps, {}> {
     render() {
         const props = this.props;
@@ -93,8 +171,10 @@ class Skill extends React.PureComponent<SkillProps, {}> {
 
         return (
             <div
-                title={`${props.description}\n\n${props.sp_min} SP/min`}
                 className={`skill${props.level != null ? "" : " not_injected"}`}
+                onClick={() => {
+                    this.props.onClick();
+                }}
             >
                 <span className="skill_lhand_details">
                     <span className={class_name}></span>
@@ -151,8 +231,49 @@ interface SkillsProps {
     training_levels: {[skill_id: number]: number | undefined};
 }
 
-class Skills extends React.Component<SkillsProps, {}> {
+interface SkillsState {
+    focused_skill: number | null;
+}
+
+class Skills extends React.Component<SkillsProps, SkillsState> {
+    constructor(props) {
+        super(props);
+        this.state = {focused_skill: null};
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.skills != this.props.skills) {
+            this.setState({focused_skill: null});
+        }
+    }
+
+    render_skill(skill: StaticSkill) {
+        const char_skills = this.props.data ? this.props.data.skills : {};
+        return (
+            <Skill
+                key={skill.id}
+                {...char_skills[skill.id]}
+                {...skill}
+                onClick={() => {
+                    this.setState({focused_skill: skill.id});
+                }}
+                training_level={this.props.training_levels[skill.id] || 0}
+                sp_min={this.props.data ? this.props.data.sp_per_minute(skill.attribute) : 0}
+            />
+        );
+    }
+
     render() {
+        if (this.state.focused_skill !== null) {
+            return (
+                <FocusedSkill
+                    skill_id={this.state.focused_skill}
+                    onClose={() => {
+                        this.setState({focused_skill: null});
+                    }}
+                />
+            );
+        }
         if (!this.props.skills) {
             return <h3>Select a Category</h3>;
         }
@@ -182,21 +303,9 @@ class Skills extends React.Component<SkillsProps, {}> {
             });
         }
 
-        const skill_doms = skills.map((skill) => (
-            <Skill
-                key={skill.id}
-                {...char_skills[skill.id]}
-                {...skill}
-                training_level={this.props.training_levels[skill.id] || 0}
-                sp_min={this.props.data ? this.props.data.sp_per_minute(skill.attribute) : 0}
-            />
-        ));
+        const skill_doms = skills.map((skill) => this.render_skill(skill));
 
-        return (
-            <>
-                <div className="skill_list">{skill_doms}</div>
-            </>
-        );
+        return <div className="skill_list">{skill_doms}</div>;
     }
 }
 
