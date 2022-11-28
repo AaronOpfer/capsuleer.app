@@ -23,6 +23,18 @@ Everything that ends with `.example` is a configuration that you will need to co
 
 [You will need to create an application with EVE](https://developers.eveonline.com/applications) and get the `client_id` and `client_secret`, and install them into `esi.conf`. You'll need to specify a callback URL with CCP; It should be `<http or https>://<whatever your canonical hostname is>/callback`.
 
+## Python
+
+Python 3.11 is required to run the main webserver and several "offline" scripts. It's likely newer versions than Python 3.11 will work too. The easiest way to get Python 3.11 on an arbitrary system is likely to use miniconda. To create the venv, run `./recreate-venv.sh`.
+
+## JavaScript
+
+Node 18.12.1 is required. It's likely newer versions will work too. The easiest way to get the right version of node is likely to install `nvm`. Then, a production build can of the front-end can be made with `npx webpack --config webpack.prod.js`.
+
+## Postgres
+
+Postgres 13 is what is currently being used to develop this application. It seems likely that a wide variety of versions will work, as our usage of postgres is generally not sophisticated. A schema dump can be found in `schema.sql`.
+
 ## `offline/` directory
 
 The offline directory contains scripts for generating static data used by various parts of the app.
