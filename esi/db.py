@@ -80,13 +80,6 @@ class DatabaseSession(ABCSession):
     def character(self):
         return self._character
 
-    @character.setter
-    def character(self, new_character):
-        raise NotImplementedError()
-
-    async def lock_for_token_update(self):
-        raise NotImplementedError()
-
 
 class Database:
     """

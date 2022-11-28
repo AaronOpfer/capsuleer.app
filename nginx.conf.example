@@ -18,7 +18,7 @@ server {
 		add_header X-Frame-Options "SAMEORIGIN" always;
 		add_header X-Content-Type-Options "nosniff" always;
 		add_header Referrer-Policy "no-referrer" always;
-		add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src https://images.evetech.net/ https://web.ccpgamescdn.com 'self' data:; connect-src 'self' https://esi.evetech.net;" always;
+		add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-Y+auAOxJ80eMOXCc9GpF1FTzpSp0o6Fa4woQvmdpGfA='; img-src https://images.evetech.net/ https://web.ccpgamescdn.com 'self' data:; connect-src 'self' https://esi.evetech.net;" always;
 		add_header Cache-Control must-revalidate;
 		charset UTF-8;
 		try_files index.html index.html;

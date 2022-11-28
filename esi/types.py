@@ -109,15 +109,6 @@ class ABCSession(metaclass=abc.ABCMeta):
     def character(self) -> Character:
         pass
 
-    @character.setter
-    @abc.abstractmethod
-    def character(self, new_character: Character):
-        pass
-
-    @abc.abstractmethod
-    async def lock_for_token_update(self):
-        pass
-
 
 class Response:
     __slots__ = "_result", "_expires", "_last_modified", "headers"

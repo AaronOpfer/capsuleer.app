@@ -11,17 +11,7 @@
     <link rel="apple-touch-icon" href="/s/capsule.png">
     <meta name="og:description" content="See all of your characters' skill plans and evaluate effectiveness of skill injectors and cerebral accelerators.
 Tie all of your characters into one convenient SSO login. No email required!">
-    <script>
-window.esi_early_fetch = (
-async function early_fetch () {
-    return await fetch(
-        '/characters',
-        {
-          credentials: 'same-origin',
-        }
-    );
-})();
-    </script>
+    <script>window.esi_early_fetch = fetch('/characters', {credentials: 'same-origin'});</script>
   </head>
   <body>
     <div id=app>
