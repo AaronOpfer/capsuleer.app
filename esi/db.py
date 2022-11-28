@@ -152,6 +152,17 @@ class Database:
             )
         return [Character(r[0], r[1], r[2]) for r in rows]
 
+    async def delete_character(self, account_id, character_id):
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                record = await conn.execute(
+                    "DELETE FROM character WHERE account_id=$1 AND character_id=$2",
+                    account_id,
+                    character_id,
+                )
+                if record != "DELETE 1":
+                    raise Exception(record)
+
     async def character_authorized(
         self, account_id, character, access_token, owner_hash
     ):

@@ -326,6 +326,10 @@ footer { text-align: center; }
     text-align: center;
 }
 
+.delete_character {
+    color: var(--error);
+}
+
 .char_summary_accelerator {
     float: right;
     font-size: 0.8em;

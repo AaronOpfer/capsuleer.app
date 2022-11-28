@@ -90,6 +90,16 @@ export async function download_wallet(character_id: number): Promise<WalletEntry
     });
 }
 
+export async function delete_character(character_id: number): Promise<void> {
+    const response = await fetch("/" + character_id, {
+        method: "DELETE",
+        credentials: "same-origin",
+    });
+    if (!response.ok) {
+        throw Error(await response.text());
+    }
+}
+
 export interface CharacterTrainingProgress {
     character_id: number;
     skill_id: number | undefined;

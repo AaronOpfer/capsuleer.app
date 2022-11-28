@@ -2,6 +2,7 @@ import React from "react";
 
 interface CharacterExpiredProps {
     character_name: string;
+    on_delete_click: (character_name: string) => void;
 }
 
 export default class CharacterExpired extends React.PureComponent<CharacterExpiredProps, {}> {
@@ -15,6 +16,20 @@ export default class CharacterExpired extends React.PureComponent<CharacterExpir
                 <p>
                     capsuleer.app no longer has valid access to this character. Log in with this
                     character again to update it.
+                </p>
+                <p>
+                    Alternatively, you can{" "}
+                    <a
+                        onClick={(e) => {
+                            this.props.on_delete_click(this.props.character_name);
+                            e.preventDefault();
+                        }}
+                        href=""
+                        className="delete_character"
+                    >
+                        remove the character.
+                    </a>
+                    .
                 </p>
             </div>
         );

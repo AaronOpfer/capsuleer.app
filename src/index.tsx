@@ -9,6 +9,7 @@ import {
     CharacterNeedsUpdated,
     download_characters,
     download_character_skills,
+    delete_character,
     CharacterNameAndId,
 } from "./server";
 
@@ -186,7 +187,44 @@ class AuthenticatedContent extends React.Component<{}, AuthenticatedContentState
             characters: null,
         };
         this.on_character_select_click = this.on_character_select_click.bind(this);
+        this.on_character_delete_request = this.on_character_delete_request.bind(this);
         this.invalidate_character = this.invalidate_character.bind(this);
+    }
+
+    on_character_delete_request(character_name: string) {
+        this.delete_character(character_name);
+    }
+
+    async delete_character(character_name: string) {
+        if (this.state.characters === null) {
+            return;
+        }
+        let character_id: null | number = null;
+        for (const char of this.state.characters) {
+            if (char.name == character_name) {
+                character_id = char.id;
+                break;
+            }
+        }
+        if (character_id === null) {
+            return;
+        }
+        if (
+            window.confirm(
+                `Are you sure you want to remove ${character_name} from capsuleer.app?`
+            ) === false
+        ) {
+            return;
+        }
+        let previous_characters = this.state.characters;
+        this.setState({characters: null});
+        try {
+            await delete_character(character_id);
+        } catch {
+            this.setState({characters: previous_characters});
+            return;
+        }
+        await this.componentDidMount();
     }
 
     async componentDidMount() {
@@ -256,7 +294,10 @@ class AuthenticatedContent extends React.Component<{}, AuthenticatedContentState
                 invalidate_character={this.invalidate_character}
             />
         ) : (
-            <CharacterExpired character_name={this.state.character_name!} />
+            <CharacterExpired
+                on_delete_click={this.on_character_delete_request}
+                character_name={this.state.character_name!}
+            />
         );
 
         return (

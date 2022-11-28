@@ -85,6 +85,14 @@ class AccessLogger(AbstractAccessLogger):
 
 def sessionify(f):
     async def wrapper(self, request):
+        if "Origin" in request.headers:
+            origin = request.headers["Origin"]
+            if origin != self._base_url:
+                logger.warning(
+                    "Request sent from %s origin, refusing. %r", origin, request
+                )
+                return aiohttp.web.Response(status=400)
+
         try:
             char_id = int(request.match_info["char"])
         except ValueError:
@@ -176,6 +184,24 @@ class Server:
         session = await get_session(request)
         session.clear()
         return aiohttp.web.HTTPFound("/")
+
+    async def delete_character(self, request):
+        if "Origin" in request.headers:
+            origin = request.headers["Origin"]
+            if origin != self._base_url:
+                logger.warning(
+                    "Request sent from %s origin, refusing. %r", origin, request
+                )
+                return aiohttp.web.Response(status=400)
+
+        try:
+            character_id = int(request.match_info["char"])
+        except ValueError:
+            return aiohttp.web.Response(status=400)
+
+        account_id = await get_account_id(request)
+        await self.db.delete_character(account_id=account_id, character_id=character_id)
+        return aiohttp.web.Response(status=200)
 
     @sessionify
     async def wallet(self, session, request):
@@ -456,6 +482,7 @@ class Server:
                 aiohttp.web.get("/characters/training", self.characters_training),
                 aiohttp.web.get(r"/{char:\d+}/skills", self.skills),
                 aiohttp.web.get(r"/{char:\d+}/wallet", self.wallet),
+                aiohttp.web.delete(r"/{char:\d+}", self.delete_character),
                 aiohttp.web.get("/skilltrades", self.skill_trades),
                 aiohttp.web.get("/logout", self.logout),
                 aiohttp.web.get("/cause_an_error", raiser),
