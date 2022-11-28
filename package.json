@@ -21,6 +21,7 @@
     "fork-ts-checker-webpack-plugin": "7.2.13",
     "html-webpack-plugin": "5.5.0",
     "html-webpack-tags-plugin": "3.0.2",
+    "preact": "^10.11.3",
     "react": "16.8.2",
     "react-dom": "16.8.2",
     "typescript": "3.6.5",
