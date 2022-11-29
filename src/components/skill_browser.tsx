@@ -166,7 +166,7 @@ class Skill extends React.PureComponent<SkillProps, {}> {
                 last_level_sp;
             const duration = (sp_to_train / props.sp_min) * 60;
 
-            skill_time = <span className="skill_time">{format_duration(duration)}</span>;
+            skill_time = <span className="skill_time">{format_duration(duration, false)}</span>;
         }
 
         return (

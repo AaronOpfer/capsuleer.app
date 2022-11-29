@@ -49,11 +49,31 @@ export function format_with_decimals(num: number, dec: number): string {
     });
 }
 
-export function format_duration(seconds: number, show_seconds?: boolean) {
-    const d = Math.floor(seconds / 86400);
-    const h = Math.floor((seconds % 86400) / 3600);
-    const m = Math.floor(((seconds % 86400) % 3600) / 60);
-    const s = show_seconds === false ? 0 : ((seconds % 86400) % 3600) % 60;
+export function format_duration(seconds: number, show_all_figures?: boolean) {
+    let d = Math.floor(seconds / 86400);
+    let h = Math.floor((seconds % 86400) / 3600);
+    let m = Math.floor(((seconds % 86400) % 3600) / 60);
+    let s = ((seconds % 86400) % 3600) % 60;
+    if (show_all_figures === false) {
+        // Only show two figures.
+        if (d) {
+            // '9d 8m' looks right, '9d' does not.
+            if (h == 0) {
+                s = 0;
+            } else {
+                if (m > 30) {
+                    h += 1;
+                }
+
+                m = s = 0;
+            }
+        } else if (h) {
+            if (s > 30) {
+                m += 1;
+            }
+            s = 0;
+        }
+    }
     return [
         [d, "d"],
         [h, "h"],

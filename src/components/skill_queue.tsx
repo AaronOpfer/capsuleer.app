@@ -37,7 +37,7 @@ export default class SkillQueue extends React.Component<SkillQueueProps, {}> {
         const data = this.props.data;
         if (data == null) {
             return (
-                <div className="skill_queue_loading">
+                <div className="skill_queue skill_queue_loading">
                     <img className="loading_indicator" src="s/loading.svg" />
                 </div>
             );

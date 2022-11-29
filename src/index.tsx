@@ -38,6 +38,7 @@ enum CurrentView {
 interface BodyState {
     char_skills: CharacterSkills | null;
     view: CurrentView;
+    split_view: boolean;
 }
 
 class Body extends React.Component<BodyProps, BodyState> {
@@ -45,11 +46,14 @@ class Body extends React.Component<BodyProps, BodyState> {
 
     constructor(props: any) {
         super(props);
+        const split_view = window.document.body.clientWidth >= 1200;
         this.state = {
             char_skills: null,
-            view: CurrentView.skillQueue,
+            view: split_view ? CurrentView.skillBrowser : CurrentView.skillQueue,
+            split_view: split_view,
         };
         this.update_interval = null;
+        this.on_resize = this.on_resize.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -64,7 +68,28 @@ class Body extends React.Component<BodyProps, BodyState> {
     }
 
     async componentDidMount() {
+        window.addEventListener("resize", this.on_resize, false);
         await this.load_character_data();
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener("resize", this.on_resize);
+    }
+
+    on_resize() {
+        const split_view = window.document.body.clientWidth >= 1200;
+        if (split_view != this.state.split_view) {
+            if (split_view) {
+                if (this.state.view == CurrentView.skillQueue) {
+                    this.setState({split_view: split_view, view: CurrentView.skillBrowser});
+                    return;
+                }
+            } else {
+                this.setState({split_view: split_view, view: CurrentView.skillQueue});
+                return;
+            }
+            this.setState({split_view: split_view});
+        }
     }
 
     async load_character_data() {
@@ -123,6 +148,25 @@ class Body extends React.Component<BodyProps, BodyState> {
                 break;
         }
 
+        const tabData = [
+            {view: CurrentView.skillQueue, label: "Skill Queue"},
+            {view: CurrentView.skillBrowser, label: "Skills"},
+            {view: CurrentView.wallet, label: "Wallet"},
+        ];
+        if (this.state.split_view) {
+            tabData.shift();
+        }
+
+        const tabs = tabData.map((tab) => (
+            <div
+                key={tab.label}
+                className={this.state.view == tab.view ? "active" : undefined}
+                onClick={() => this.set_view(tab.view)}
+            >
+                {tab.label}
+            </div>
+        ));
+
         return (
             <>
                 <div className={char_skills ? "top" : "top loading"}>
@@ -135,29 +179,11 @@ class Body extends React.Component<BodyProps, BodyState> {
                         }
                     />
                 </div>
-                <div className="tab">
-                    <div
-                        className={this.state.view == CurrentView.skillQueue ? "active" : undefined}
-                        onClick={(e) => this.set_view(CurrentView.skillQueue)}
-                    >
-                        Skill Queue
-                    </div>
-                    <div
-                        className={
-                            this.state.view == CurrentView.skillBrowser ? "active" : undefined
-                        }
-                        onClick={(e) => this.set_view(CurrentView.skillBrowser)}
-                    >
-                        Skills
-                    </div>
-                    <div
-                        className={this.state.view == CurrentView.wallet ? "active" : undefined}
-                        onClick={(e) => this.set_view(CurrentView.wallet)}
-                    >
-                        Wallet
-                    </div>
+                <div className="tab_bar">{tabs}</div>
+                <div className={"tab_content" + (this.state.split_view ? " split_view" : "")}>
+                    {view}
+                    {this.state.split_view ? <SkillQueue data={char_skills} /> : null}
                 </div>
-                <div className="tab_content">{view}</div>
             </>
         );
     }

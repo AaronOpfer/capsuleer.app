@@ -363,7 +363,7 @@ footer { text-align: center; }
     padding: 0.25em 0;
 }
 
-@media only screen and (min-width: 800px) {
+@media only screen and (min-width: 800px) and (max-width: 1200px), screen and (min-width: 1400px)  {
     .skill_categories {
         column-count: 4;
     }
@@ -371,7 +371,13 @@ footer { text-align: center; }
 
 @media only screen and (min-width: 1880px) {
     .skill_categories {
-        column-count: 8;
+        column-count: 6;
+    }
+}
+
+@media screen and (min-width: 800px) and (max-width: 1200px), screen and (min-width: 1440px) {
+    div.skill {
+        width: 50%;
     }
 }
 
@@ -530,18 +536,6 @@ footer { text-align: center; }
     white-space: pre-wrap;
 }
 
-@media screen and (min-width: 800px) {
-    .skill {
-        width: 50%;
-    }
-}
-
-@media only screen and (min-width: 1880px) {
-    .skill {
-        width: 25%;
-    }
-}
-
 .skill_attribute {
     font-size: 0.9em;
     margin: 0.3em;
@@ -576,6 +570,12 @@ footer { text-align: center; }
 
 .skill_queue {
     margin-top: 1em;
+}
+
+.split_view .skill_queue {
+    width: 600px;
+    flex-shrink: 0;
+    margin-left: 0.5em;
 }
 
 .skill_queue_header {
@@ -625,12 +625,12 @@ footer { text-align: center; }
     /* hide bars on mobile where space is precious */
     display: none;
 }
+
 @media only screen and (min-width: 600px) {
     .skill_queue_item .s {
         display: initial;
     }
 }
-
 
 
 .skill_queue_duration_bar {
@@ -661,20 +661,24 @@ footer { text-align: center; }
     vertical-align: center;
 }
 
-.tab {
+.tab_area {
+    flex-grow: 1;
+}
+
+.tab_bar {
     margin-left: 0.5em;
 }
 
-.tab .active {
+.tab_bar .active {
     background: var(--skillcat-e);
     cursor: initial;
 }
 
-.tab .active:hover {
+.tab_bar .active:hover {
     background: var(--skillcat-eh);
 }
 
-.tab div {
+.tab_bar div {
     display: inline-block;
     background: var(--skillcat);
     margin: 0 0.3em;
@@ -684,15 +688,20 @@ footer { text-align: center; }
     user-select: none;
 }
 
-.tab div:hover {
+.tab_bar div:hover {
     background: var(--skillcat-h);
 }
 
 .tab_content {
+    display: flex;
     border-top: 2px solid var(--skillcat-e);
     border-radius: 5px;
     margin: 0 3px 3px 3px;
     padding: 2px;
+}
+
+.tab_content > div:first-child {
+    flex-grow: 1;
 }
 
 .wallet {
