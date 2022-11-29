@@ -468,7 +468,6 @@ footer { text-align: center; }
 
 .skill:hover, .skill_category:hover {
     background: var(--skillcat-h) !important;
-    transition: background-color 60ms;
 }
 
 .skill_list {
@@ -716,6 +715,10 @@ footer { text-align: center; }
     width: 100%;
 }
 
+.wallet_table > tbody > tr > td {
+    white-space: nowrap;
+}
+
 .wallet_notice {
     text-align: center;
     font-size: 1.2em;
@@ -732,7 +735,7 @@ footer { text-align: center; }
     position: sticky;
     top: 0;
     z-index: 2;
-    background: rgba(22, 22, 22, 0.77);
+    background: rgba(22, 22, 22, 0.88);
 }
 
 .n {
@@ -745,6 +748,10 @@ footer { text-align: center; }
 
 .d {
     text-align: left;
+}
+td.d {
+    font-size: 0.8em;
+    letter-spacing: -0.2px;
 }
 
 .s0_0 { background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAAANCAYAAAADk4jiAAAAWElEQVRYR2N0cfH9z0Ai2LNnMyNIy0jTC/Iz40jzNCX+HQ0wInMWLEeNBthogOEOAWqUu6MpbDSFjaYwlBCgRrYarSVJzFajATYaYLQth0ZT2GgKG9wpDAA3GAQdNBLCrAAAAABJRU5ErkJggg==") }
