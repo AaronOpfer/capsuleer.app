@@ -1,4 +1,4 @@
-import CharacterSkills from "./character_skills";
+import {CharacterSkills} from "./character_skills";
 
 export interface CharacterNameAndId {
     id: number;
@@ -51,7 +51,7 @@ export async function download_character_skills(character_id: number): Promise<C
         throw new CharacterNeedsUpdated();
     }
 
-    return new CharacterSkills(await response.json());
+    return new CharacterSkills(await response.json(), character_id);
 }
 
 export interface WalletEntry {

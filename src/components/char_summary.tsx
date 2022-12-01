@@ -1,5 +1,5 @@
 import React from "react";
-import CharacterSkills from "../character_skills";
+import {CharacterSkills} from "../character_skills";
 import {format_with_decimals} from "../misc/formatting";
 import {Radar, RadarOutline} from "./radar";
 

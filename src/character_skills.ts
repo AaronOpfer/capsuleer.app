@@ -14,7 +14,7 @@ function color_band(color1, color2, weight): string {
     return `rgb(${rgb.join(",")})`;
 }
 
-interface CharacterSkillQueueItem {
+export interface CharacterSkillQueueItem {
     id: number;
     level: number;
     start_date: Date | null;
@@ -22,14 +22,14 @@ interface CharacterSkillQueueItem {
     duration: number;
 }
 
-interface CharacterSkillItem {
+export interface CharacterSkillItem {
     id: number;
     level: number;
     trained_level: number;
     sp: number;
 }
-
-export default class CharacterSkills {
+export class CharacterSkills {
+    character_id: number;
     total_sp: number;
     unallocated_sp: number;
     wallet_balance: number;
@@ -39,13 +39,15 @@ export default class CharacterSkills {
     willpower: number;
     charisma: number;
     skill_queue: CharacterSkillQueueItem[];
-    skills: {[id: number]: CharacterSkillItem};
+    skills: {[id: number]: Readonly<CharacterSkillItem>};
     skill_queue_paused: boolean;
     accelerator_amount: number;
+    base_attributes: number[];
     implants: number[];
     biology_implant_bonus: number;
 
-    constructor(skill_json) {
+    constructor(skill_json, character_id: number) {
+        this.character_id = character_id;
         this.total_sp = skill_json[0];
         this.skills = {};
         skill_json[2].forEach((i) => {
@@ -58,10 +60,12 @@ export default class CharacterSkills {
         });
         const current_attributes = skill_json[3];
         const implant_bonuses = skill_json[7];
+        this.implants = implant_bonuses;
         const unboosted_attributes = current_attributes.map((v, i) => v - implant_bonuses[i]);
         this.accelerator_amount = (unboosted_attributes.reduce((a, b) => a + b, 0) - 99) / 5;
+        this.base_attributes = unboosted_attributes.map((x) => x - this.accelerator_amount);
         [this.intelligence, this.memory, this.perception, this.willpower, this.charisma] =
-            current_attributes.map((x) => x - this.accelerator_amount);
+            this.base_attributes.map((v, i) => v + implant_bonuses[i]);
         this.wallet_balance = skill_json[4];
         this.unallocated_sp = skill_json[8] || 0;
         this.biology_implant_bonus = {0: 1, 1: 1.05, 2: 1.1}[skill_json[9]];

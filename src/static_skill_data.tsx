@@ -1,4 +1,4 @@
-import skill_data_raw from "./skills.json";
+import * as skill_data_raw from "./skills.json";
 
 export interface StaticSkill {
     readonly id: number,

@@ -4,7 +4,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import {character_url} from "./misc/urls";
 import {setTimeoutWithVisibility, TimeoutHandle} from "./misc/visibilitytimeout";
-import CharacterSkills from "./character_skills";
+import {CharacterSkills} from "./character_skills";
 import {
     NeedsLoginError,
     CharacterNeedsUpdated,
@@ -18,6 +18,7 @@ import LoginForm from "./components/login_form";
 import CharacterExpired from "./components/character_expired";
 import ISKForSPPanel from "./components/isk_for_sp";
 import SkillQueue from "./components/skill_queue";
+import Optimizer from "./components/optimizer";
 import Header from "./components/header/header";
 import SkillBrowser from "./components/skill_browser";
 import CharSummary from "./components/char_summary";
@@ -34,6 +35,7 @@ enum CurrentView {
     skillQueue,
     skillBrowser,
     wallet,
+    optimizer,
 }
 
 interface BodyState {
@@ -158,12 +160,16 @@ class Body extends React.Component<BodyProps, BodyState> {
             case CurrentView.skillBrowser:
                 view = <SkillBrowser key="view" data={char_skills} />;
                 break;
+            case CurrentView.optimizer:
+                view = <Optimizer key="view" data={char_skills} />;
+                break;
         }
 
         const tabData = [
             {view: CurrentView.skillQueue, label: "Skill Queue"},
             {view: CurrentView.skillBrowser, label: "Skills"},
             {view: CurrentView.wallet, label: "Wallet"},
+            {view: CurrentView.optimizer, label: "One-shot Optimizer"},
         ];
         if (this.state.split_view) {
             tabData.shift();

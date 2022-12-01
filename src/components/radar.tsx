@@ -32,6 +32,12 @@ const attribute_style = {
     fill: "rgba(28, 164, 233, 0.5)",
 };
 
+const old_attribute_style = {
+    stroke: "#a3a3a3",
+    strokeWidth: "2px",
+    fill: "rgba(164, 164, 164, 0.5)",
+};
+
 const pent_size = 200;
 const pent_x = 60;
 const pent_y = 60;
@@ -43,6 +49,22 @@ function get_point_values(ratios: number[]) {
     ]);
 }
 
+function get_point_values_from_props(props: RadarProps) {
+    const attrs = [
+        props.intelligence,
+        props.memory,
+        props.perception,
+        props.willpower,
+        props.charisma,
+    ];
+    const clockface = [0, 1, 2, 3, 4].map((idx) => (
+        <text key={idx} style={text_style} x={label_points[idx][0]} y={label_points[idx][1]}>
+            {labels[idx]}: {attrs[idx]}
+        </text>
+    ));
+    return [get_point_values(attrs.map(attribute_ratio)), clockface];
+}
+
 function get_points_string(values) {
     return values.map(([x, y]) => `${x},${y}`).join(" ");
 }
@@ -52,7 +74,7 @@ const label_points = get_point_values([1.05, 1.2, 1.2, 1.2, 1.2]);
 const text_style: React.CSSProperties = {
     fill: "#fff",
     textAnchor: "middle",
-    fontSize: "26px",
+    fontSize: "20px",
 };
 const line_style = {
     stroke: "#444",
@@ -72,11 +94,6 @@ const outline = (
                 y2={y}
                 style={line_style}
             />
-        ))}
-        {[0, 1, 2, 3, 4].map((idx) => (
-            <text key={idx} style={text_style} x={label_points[idx][0]} y={label_points[idx][1]}>
-                {labels[idx]}
-            </text>
         ))}
     </g>
 );
@@ -103,18 +120,24 @@ export class RadarOutline extends React.PureComponent<
 
 export class Radar extends React.PureComponent<RadarProps> {
     render() {
-        const props = this.props;
-        const attr_points = get_point_values(
-            [
-                props.intelligence,
-                props.memory,
-                props.perception,
-                props.willpower,
-                props.charisma,
-            ].map(attribute_ratio)
-        );
+        const [attr_points, radar_labels] = get_point_values_from_props(this.props);
         return (
             <RadarOutline>
+                {radar_labels}
+                <polygon style={attribute_style} points={get_points_string(attr_points)} />
+            </RadarOutline>
+        );
+    }
+}
+
+export class ComparisonRadar extends React.PureComponent<{old: RadarProps; new: RadarProps}> {
+    render() {
+        const [attr_points, radar_labels] = get_point_values_from_props(this.props.new);
+        const old_attr_points = get_point_values_from_props(this.props.old)[0];
+        return (
+            <RadarOutline>
+                {radar_labels}
+                <polygon style={old_attribute_style} points={get_points_string(old_attr_points)} />
                 <polygon style={attribute_style} points={get_points_string(attr_points)} />
             </RadarOutline>
         );

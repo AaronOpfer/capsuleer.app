@@ -1,7 +1,7 @@
 import React from "react";
 import {skill_data} from "../static_skill_data";
 import {format_duration} from "../misc/formatting";
-import CharacterSkills from "../character_skills";
+import {CharacterSkills} from "../character_skills";
 import {sp_required, calculate_number_of_injectors} from "../misc/sp";
 import {format_with_decimals} from "../misc/formatting";
 

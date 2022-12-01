@@ -6,6 +6,34 @@ export const attribute_names = Object.freeze([
     "charisma",
 ]);
 
+export const attribute_indexes = Object.freeze([
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [0, 4],
+    [1, 0],
+    [1, 2],
+    [1, 3],
+    [1, 4],
+    [2, 0],
+    [2, 1],
+    [2, 3],
+    [2, 4],
+    [3, 0],
+    [3, 1],
+    [3, 2],
+    [3, 4],
+    [4, 0],
+    [4, 1],
+    [4, 2],
+    [4, 3],
+]);
+
+export function sp_per_minute(attributes: number[], attribute_type: number): number {
+    const [lh, rh] = attribute_indexes[attribute_type];
+    return attributes[lh] + attributes[rh] / 2;
+}
+
 export const attribute_types = Object.freeze([
     "intelligence/memory",
     "intelligence/perception",
@@ -27,6 +55,19 @@ export const attribute_types = Object.freeze([
     "charisma/memory",
     "charisma/perception",
     "charisma/willpower",
+]);
+
+export const attribute_bitmasks = Object.freeze([
+    // int
+    0b11000, 0b10100, 0b10010, 0b10001,
+    // mem
+    0b11000, 0b01100, 0b01010, 0b01001,
+    // per
+    0b10100, 0b01100, 0b00110, 0b00101,
+    // wil
+    0b10010, 0b01010, 0b00110, 0b00011,
+    //char
+    0b10001, 0b01001, 0b00101, 0b00011,
 ]);
 
 export function sp_required(level: number, rank: number): number {
