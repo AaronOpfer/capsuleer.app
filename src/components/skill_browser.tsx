@@ -117,7 +117,9 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
                 </div>
                 <div className="focused_skill_details">
                     <span className="rank">{skill.rank}</span>
-                    <span className="sp">{format_with_decimals(sp_required(5, skill.rank), 0)}</span>
+                    <span className="sp">
+                        {format_with_decimals(sp_required(5, skill.rank), 0)}
+                    </span>
                     <span className="attribute_primary">{attribs[0]}</span>
                     <span className="attribute_secondary">{attribs[1]}</span>
                 </div>

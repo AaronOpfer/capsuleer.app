@@ -8,6 +8,7 @@ interface ISKForSPPanelItemProps {
     price: number;
     isk_sp: number | null;
     sp: number | null;
+    sp_day: number | null;
 }
 
 class ISKForSPPanelItem extends React.PureComponent<ISKForSPPanelItemProps, {}> {
@@ -20,8 +21,15 @@ class ISKForSPPanelItem extends React.PureComponent<ISKForSPPanelItemProps, {}> 
                     <img src={`https://images.evetech.net/types/${s.image_type_id}/icon?size=32`} />
                 </td>
                 <td>{s.formatter(s.price)}</td>
-                <td>{s.sp != null ? format_with_decimals(s.sp, 0) : "---"}</td>
-                <td>{s.isk_sp != null ? format_with_decimals(s.isk_sp, 0) : "---"}</td>
+                <td>{s.sp !== null ? format_with_decimals(s.sp, 0) : "---"}</td>
+                <td>
+                    {s.sp_day !== null
+                        ? s.sp_day === Infinity
+                            ? "∞"
+                            : format_with_decimals(s.sp_day, 0)
+                        : "---"}
+                </td>
+                <td>{s.isk_sp !== null ? format_with_decimals(s.isk_sp, 0) : "---"}</td>
             </tr>
         );
     }
@@ -55,6 +63,7 @@ interface ISKForSPItemData {
     price: number;
     sp: number | null;
     isk_sp: number | null;
+    sp_day: number | null;
 }
 
 // This is kind of lying; it's not a pure component if it downloads data with fetch()
@@ -108,6 +117,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                 price: state.lsi_price,
                 sp: null,
                 isk_sp: null,
+                sp_day: Infinity,
             },
             {
                 type_id: 45635,
@@ -116,6 +126,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                 price: state.ssi_price,
                 sp: null,
                 isk_sp: null,
+                sp_day: Infinity,
             },
         ];
 
@@ -149,13 +160,15 @@ export default class ISKForSPPanel extends React.PureComponent<
                 price: accel.price,
                 sp: null,
                 isk_sp: null,
+                sp_day: null,
             }));
         }
 
         const level = state.fake_biology_5 ? 5 : props.biology_skill_level;
         const implant = state.fake_implant ? 1.1 : props.biology_implant_multiplier;
 
-        const all_mults = (implant * (1 + 0.2 * level)) / 40;
+        const duration_mult = implant * (1 + 0.2 * level);
+        const all_mults = duration_mult / 40;
 
         return state.accelerators.map((accel) => {
             const sp = all_mults * accel.duration * accel.magnitude;
@@ -166,6 +179,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                 price: accel.price,
                 sp,
                 isk_sp: accel.price / sp,
+                sp_day: (sp * 86400) / accel.duration / duration_mult,
             };
         });
     }
@@ -243,6 +257,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                             <td style={{paddingRight: "16px"}}>Name</td>
                             <td>Price</td>
                             <td>SP</td>
+                            <td>SP/Day</td>
                             <td>ISK/SP</td>
                         </tr>
                     </thead>
