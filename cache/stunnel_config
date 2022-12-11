@@ -1,6 +1,6 @@
 client = yes
 foreground = yes
-debug = info
+debug = warning
 pid =
 
 [mysslconnect]
