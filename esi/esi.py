@@ -205,9 +205,17 @@ class PublicESISession:
 
         while True:
             page += 1
-            orders = await self._get_region_orders(
-                region_id, params={"page": str(page), **params}
-            )
+            try:
+                orders = await self._get_region_orders(
+                    region_id, params={"page": str(page), **params}
+                )
+            except aiohttp.ClientResponseError as exc:
+                # Reading past the last page emits a 404 error.
+                # Treat this like an empty orders return value.
+                if page == 1 or exc.status != 404:
+                    raise
+                orders = ()
+
             for item in orders:
                 yield item
             if len(orders) < 1000:
