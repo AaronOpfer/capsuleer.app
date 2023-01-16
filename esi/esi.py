@@ -70,6 +70,7 @@ async def request_with_retry(
     to avoid contributing to a flood situation.
     """
     for attempt in range(3):
+        sleep_length = 10 * attempt + random.randrange(5, 15)
         try:
             async with session.get(
                 url, raise_for_status=True, headers=headers, params=params
@@ -79,15 +80,20 @@ async def request_with_retry(
         except aiohttp.ClientResponseError as exc:
             if exc.status not in RETRY_ERROR_STATUSES:
                 raise
-
-            sleep_length = 10 * attempt + random.randrange(5, 15)
             logger.warning(
                 "GET %s hit %d, sleeping for %d and trying again",
                 url,
                 exc.status,
                 sleep_length,
             )
-            await asyncio.sleep(sleep_length)
+        except aiohttp.ServerDisconnectedError:
+            logger.warning(
+                "GET %s encountered server disconnect, sleeping for %d and trying again",
+                url,
+                sleep_length,
+            )
+
+        await asyncio.sleep(sleep_length)
 
     # For the last attempt, don't use try..except.
     async with session.get(
