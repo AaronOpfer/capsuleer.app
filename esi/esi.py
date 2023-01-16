@@ -144,7 +144,7 @@ def _esi(
 
 
 class PublicESISession:
-    __slots__ = ("_esi_url", "_session", "_bad_citadels")
+    __slots__ = ("_esi_url", "_session", "_bad_citadels", "_forge_citadel_cache")
 
     def __init__(self, esi_url):
         headers = {
@@ -152,6 +152,7 @@ class PublicESISession:
             "Accept": "application/json",
             "Host": "esi.evetech.net",
         }
+
         if esi_url.startswith("unix://"):
             self._esi_url = ""
             self._session = aiohttp.ClientSession(
@@ -214,6 +215,24 @@ class PublicESISession:
                 return
 
     get_forge_orders = functools.partialmethod(get_market_orders, 10_000_002)
+
+    async def get_forge_market_citadel_ids(self):
+        """
+        Retrieves the location IDs for citadels in The Forge with markets.
+        Done by scanning the Jita buy orders (expensive!)
+        """
+        now = datetime.datetime.now()
+        try:
+            result, fetch_dt = self._forge_citadel_cache
+            if now - fetch_dt > datetime.timedelta(hours=12):
+                raise AttributeError
+            return result
+        except AttributeError:
+            pass
+        orders = self.get_forge_orders("buy")
+        result = {o["location_id"] async for o in orders} - forge_npc_station_ids
+        self._forge_citadel_cache = result, now
+        return result
 
     # fmt: off
     get_type_information = _esi(3, "universe/types/{}", "get_type_information")
@@ -361,14 +380,6 @@ class ESISession(PublicESISession):
                     params["page"],
                 )
                 return orders
-
-    async def get_forge_market_citadel_ids(self):
-        """
-        Retrieves the location IDs for citadels in The Forge with markets.
-        Done by scanning the Jita buy orders (expensive!)
-        """
-        orders = self.get_forge_orders("buy")
-        return {o["location_id"] async for o in orders} - forge_npc_station_ids
 
     @_requires_session
     async def get_best_price(self, session, buy_sell, citadel_ids, region_id, type_id):
