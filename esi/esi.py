@@ -14,6 +14,7 @@ from .types import (
     RefreshTokenError,
     CharacterNeedsUpdated,
     Response,
+    ESILimiter,
 )
 from .data import forge_npc_station_ids
 
@@ -59,6 +60,7 @@ RETRY_ERROR_STATUSES = frozenset({502, 503, 504})
 
 
 async def request_with_retry(
+    esilimiter: ESILimiter,
     session: aiohttp.ClientSession,
     url: str,
     headers: dict[str, str],
@@ -69,14 +71,15 @@ async def request_with_retry(
     happens, retry the request again. We wait before retrying in order
     to avoid contributing to a flood situation.
     """
-    for attempt in range(3):
+    for attempt in range(2):
         sleep_length = 10 * attempt + random.randrange(5, 15)
         try:
-            async with session.get(
-                url, raise_for_status=True, headers=headers, params=params
-            ) as resp:
-                res = await resp.json()
-                return Response(res, resp)
+            async with esilimiter:
+                async with session.get(
+                    url, raise_for_status=True, headers=headers, params=params
+                ) as resp:
+                    res = await resp.json()
+                    return Response(res, resp)
         except aiohttp.ClientResponseError as exc:
             if exc.status not in RETRY_ERROR_STATUSES:
                 raise
@@ -96,11 +99,12 @@ async def request_with_retry(
         await asyncio.sleep(sleep_length)
 
     # For the last attempt, don't use try..except.
-    async with session.get(
-        url, raise_for_status=True, headers=headers, params=params
-    ) as resp:
-        res = await resp.json()
-        return Response(res, resp)
+    async with esilimiter:
+        async with session.get(
+            url, raise_for_status=True, headers=headers, params=params
+        ) as resp:
+            res = await resp.json()
+            return Response(res, resp)
 
 
 def _esi(
@@ -141,7 +145,18 @@ def _esi(
                 args = session.character.id, *args
 
         url = self._esi_url + url_format_func(*args)
-        return await request_with_retry(self._session, url, headers, params)
+        resp = await request_with_retry(
+            self._esilimiter, self._session, url, headers, params
+        )
+        try:
+            remaining = int(resp.headers["X-ESI-Error-Limit-Remain"])
+            timeout = int(resp.headers["X-ESI-Error-Limit-Reset"])
+            self._esilimiter.set_remaining(resp.date, remaining - 1, timeout + 0.5)
+        except Exception:
+            logger.warning(
+                "Ignoring error parsing X-ESI-Error-Limit-Remain", exc_info=True
+            )
+        return resp
 
     inner.__name__ = name
     if session_type is not SessionType.none:
@@ -150,7 +165,13 @@ def _esi(
 
 
 class PublicESISession:
-    __slots__ = ("_esi_url", "_session", "_bad_citadels", "_forge_citadel_cache")
+    __slots__ = (
+        "_esi_url",
+        "_session",
+        "_bad_citadels",
+        "_forge_citadel_cache",
+        "_esilimiter",
+    )
 
     def __init__(self, esi_url):
         headers = {
@@ -158,6 +179,7 @@ class PublicESISession:
             "Accept": "application/json",
             "Host": "esi.evetech.net",
         }
+        self._esilimiter = ESILimiter()
 
         if esi_url.startswith("unix://"):
             self._esi_url = ""
