@@ -1,4 +1,5 @@
 import os
+import math
 import ast
 import time
 import asyncio
@@ -296,7 +297,7 @@ class Server:
 
         headers = {}
         now = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
-        time_until_expiry = (earliest_expiry - now).total_seconds()
+        time_until_expiry = math.floor((earliest_expiry - now).total_seconds())
 
         if time_until_expiry > 0:
             headers["Cache-Control"] = f"private, max-age={time_until_expiry}"
