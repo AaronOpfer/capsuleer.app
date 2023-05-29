@@ -345,24 +345,11 @@ class ESISession(PublicESISession):
             resp.raise_for_status()
             return data
 
-    async def _verify_session(self, session: ABCSession):
+    async def _update_session_refresh_token(self, session: ABCSession) -> None:
         token = session.access_token
-        if token.expired_after > datetime.datetime.utcnow():
-            return
-
-        # ensure only one refresh HTTP request is running at once
         refresh_token = token.refresh_token
         try:
-            refresh_task = self._refresh_token_tasks[refresh_token]
-        except KeyError:
-            refresh_task = asyncio.shield(self._get_refresh_token(refresh_token))
-            self._refresh_token_tasks[refresh_token] = refresh_task
-            refresh_task.add_done_callback(
-                lambda fut: self._refresh_token_tasks.pop(refresh_token)
-            )
-
-        try:
-            results = await refresh_task
+            results = await self._get_refresh_token(refresh_token)
         except RefreshTokenError as exc:
             logger.warning(
                 "Refresh of token failed. error=%r, description=%r",
@@ -380,6 +367,34 @@ class ESISession(PublicESISession):
                     results["refresh_token"],
                 )
             )
+
+    async def _verify_session(self, session: ABCSession) -> None:
+        # Is there already a refresh in progress for this character?
+        try:
+            refresh_task = self._refresh_token_tasks[session.character.id]
+        except KeyError:
+            pass  # no, there isn't.
+        else:
+            # Yes, there is. shield it, await it, and return.
+            await asyncio.shield(refresh_task)
+            return
+
+        # No refresh in progress. check if the token is valid.
+        token = session.access_token
+        if token.expired_after > datetime.datetime.utcnow():
+            # Expiration is in the future. no work to do.
+            return
+
+        # schedule the work for refreshing the user's token.
+        refresh_task = asyncio.ensure_future(
+            self._update_session_refresh_token(session)
+        )
+        self._refresh_token_tasks[session.character.id] = refresh_task
+        refresh_task.add_done_callback(
+            lambda fut: self._refresh_token_tasks.pop(session.character.id)
+        )
+
+        await asyncio.shield(refresh_task)
 
     async def get_character(self, access_token: AccessToken) -> tuple[Character, str]:
         async with self._session.get(
