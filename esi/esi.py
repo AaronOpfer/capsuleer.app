@@ -71,15 +71,31 @@ async def request_with_retry(
     happens, retry the request again. We wait before retrying in order
     to avoid contributing to a flood situation.
     """
+
+    async def request():
+        async with esilimiter:
+            async with session.get(url, headers=headers, params=params) as resp:
+                if resp.status in RETRY_ERROR_STATUSES:
+                    resp.raise_for_status()
+
+                try:
+                    res = await resp.json()
+                except Exception:
+                    # Attempt to raise a double-stacktrace.
+                    resp.raise_for_status()
+                    raise
+                try:
+                    resp.raise_for_status()
+                except Exception:
+                    logger.error("%s %d: %r", url, resp.status, res)
+                    raise
+
+                return Response(res, resp)
+
     for attempt in range(2):
         sleep_length = 10 * attempt + random.randrange(5, 15)
         try:
-            async with esilimiter:
-                async with session.get(
-                    url, raise_for_status=True, headers=headers, params=params
-                ) as resp:
-                    res = await resp.json()
-                    return Response(res, resp)
+            return await request()
         except aiohttp.ClientResponseError as exc:
             if exc.status not in RETRY_ERROR_STATUSES:
                 raise
@@ -99,12 +115,7 @@ async def request_with_retry(
         await asyncio.sleep(sleep_length)
 
     # For the last attempt, don't use try..except.
-    async with esilimiter:
-        async with session.get(
-            url, raise_for_status=True, headers=headers, params=params
-        ) as resp:
-            res = await resp.json()
-            return Response(res, resp)
+    return await request()
 
 
 def _esi(
@@ -208,6 +219,7 @@ class PublicESISession:
             1_030_524_644_061,
             1_032_792_278_341,
             1_033_110_865_110,
+            1_041_701_800_198,
         }
 
     async def __aenter__(self):
