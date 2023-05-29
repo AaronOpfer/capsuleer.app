@@ -1,7 +1,6 @@
 import asyncio
 import asyncpg
 import logging
-import weakref
 
 from .types import (
     ABCSession,
@@ -91,7 +90,7 @@ class Database:
 
     def __init__(self, **kwargs):
         self._connargs = kwargs
-        self._cache = weakref.WeakValueDictionary()
+        self._cache = {}  # TODO Perpetual caching is not great!
 
     async def __aenter__(self):
         await self.connect()
@@ -105,13 +104,13 @@ class Database:
 
     def get_session(self, account_id, character_id):
         try:
-            return self._cache[(account_id, character_id)]
+            return asyncio.shield(self._cache[(account_id, character_id)])
         except KeyError:
             pass
 
-        task = asyncio.shield(self._get_session(account_id, character_id))
+        task = asyncio.ensure_future(self._get_session(account_id, character_id))
         self._cache[(account_id, character_id)] = task
-        return task
+        return asyncio.shield(task)
 
     async def _get_session(self, account_id, character_id):
         new_session = DatabaseSession(self._pool, account_id, character_id)

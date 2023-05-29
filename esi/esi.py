@@ -352,13 +352,20 @@ class ESISession(PublicESISession):
             results = await self._get_refresh_token(refresh_token)
         except RefreshTokenError as exc:
             logger.warning(
-                "Refresh of token failed. error=%r, description=%r",
+                "Refresh of token for %d(%s) failed. error=%r, description=%r",
+                session.character.id,
+                session.character.name,
                 exc.args[0],
                 exc.args[1],
             )
             await session.set_access_token(None)
             raise CharacterNeedsUpdated() from None
         else:
+            logger.debug(
+                "%d(%s) token refresh successful",
+                session.character.id,
+                session.character.name,
+            )
             await session.set_access_token(
                 AccessToken(
                     results["access_token"],
