@@ -207,9 +207,15 @@ class Server:
     @sessionify
     async def wallet(self, session, request):
         journal = await self._esi.get_wallet_journal(session)
+        now = datetime.datetime.now(datetime.timezone.utc)
+        time_until_expiry = math.floor((journal.expires - now).total_seconds())
+        headers = {}
+        if time_until_expiry > 0:
+            headers["Cache-Control"] = f"private, max-age={time_until_expiry}"
+
         journal = [j for j in journal if j["amount"]]  # skip 0 ISK "fees"
         if not len(journal):
-            return aiohttp.web.json_response((), dumps=dumps)
+            return aiohttp.web.json_response((), dumps=dumps, headers=headers)
 
         string_table = {}
 
@@ -223,6 +229,7 @@ class Server:
 
         first_date_int = int(dateparse(journal[0]["date"]).timestamp())
         etag = f'W/"{first_date_int}"'
+        headers["ETag"] = etag
         if etag == request.headers.get("if-none-match"):
             raise aiohttp.web.HTTPNotModified
 
@@ -242,7 +249,7 @@ class Server:
                 tuple(string_table.keys()),
                 reduced,
             ],
-            headers={"ETag": etag},
+            headers=headers,
             dumps=dumps,
         )
 
