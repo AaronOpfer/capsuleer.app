@@ -43,7 +43,7 @@ class DatabaseSession(ABCSession):
             raise CharacterNeedsUpdated()
         self._access_token = AccessToken(
             record["access_token"],
-            record["access_token_expires"].replace(tzinfo=None),
+            record["access_token_expires"],
             record["refresh_token"],
         )
         self._character = Character(self._character_id, record["name"], True)
@@ -100,7 +100,7 @@ class Database:
     async def __aexit__(self, a, b, c):
         await self._pool.close()
 
-    async def connect(self):
+    async def connect(self) -> None:
         self._pool = await asyncpg.create_pool(**self._connargs)
 
     def get_session(self, account_id, character_id):
@@ -113,7 +113,7 @@ class Database:
         self._cache[(account_id, character_id)] = task
         return asyncio.shield(task)
 
-    async def _get_session(self, account_id, character_id):
+    async def _get_session(self, account_id: int, character_id: int) -> DatabaseSession:
         new_session = DatabaseSession(self._pool, account_id, character_id)
         await new_session.initialize()
         return new_session

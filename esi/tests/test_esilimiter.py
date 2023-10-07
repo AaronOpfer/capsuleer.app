@@ -4,7 +4,7 @@ import unittest
 
 from esi.types import ESILimiter
 
-TIME_1 = datetime.datetime.now(datetime.timezone.utc)
+TIME_1 = datetime.datetime.now(datetime.UTC)
 TIME_2 = TIME_1 + datetime.timedelta(seconds=5)
 TIME_3 = TIME_2 + datetime.timedelta(seconds=5)
 

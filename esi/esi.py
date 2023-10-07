@@ -269,7 +269,7 @@ class PublicESISession:
         Retrieves the location IDs for citadels in The Forge with markets.
         Done by scanning the Jita buy orders (expensive!)
         """
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.UTC)
         try:
             result, fetch_dt = self._forge_citadel_cache
             if now - fetch_dt > datetime.timedelta(hours=12):
@@ -327,7 +327,7 @@ class ESISession(PublicESISession):
             results = await resp.json()
             return AccessToken(
                 results["access_token"],
-                datetime.datetime.utcnow()
+                datetime.datetime.now(datetime.UTC)
                 + datetime.timedelta(seconds=results["expires_in"]),
                 results["refresh_token"],
             )
@@ -369,7 +369,7 @@ class ESISession(PublicESISession):
             await session.set_access_token(
                 AccessToken(
                     results["access_token"],
-                    datetime.datetime.utcnow()
+                    datetime.datetime.now(datetime.UTC)
                     + datetime.timedelta(seconds=results["expires_in"]),
                     results["refresh_token"],
                 )
@@ -388,7 +388,7 @@ class ESISession(PublicESISession):
 
         # No refresh in progress. check if the token is valid.
         token = session.access_token
-        if token.expired_after > datetime.datetime.utcnow():
+        if token.expired_after > datetime.datetime.now(datetime.UTC):
             # Expiration is in the future. no work to do.
             return
 

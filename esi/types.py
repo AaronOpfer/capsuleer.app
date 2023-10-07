@@ -173,7 +173,7 @@ class ESILimiter:
         self._reset_timer: asyncio.TimerHandle | None = None
         # pick a really old day for the sake of my unit tests.
         self._previous_response_dt = datetime.datetime(
-            year=2019, month=1, day=1, tzinfo=datetime.timezone.utc
+            year=2019, month=1, day=1, tzinfo=datetime.UTC
         )
 
     if __debug__:

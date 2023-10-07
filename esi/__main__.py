@@ -47,7 +47,9 @@ async def get_account_id(request):
 
 
 def dateparse(incoming):
-    return datetime.datetime.strptime(incoming, "%Y-%m-%dT%H:%M:%SZ")
+    return datetime.datetime.strptime(incoming, "%Y-%m-%dT%H:%M:%SZ").astimezone(
+        datetime.UTC
+    )
 
 
 def skillqueue_reducer(item):
@@ -210,7 +212,7 @@ class Server:
     @sessionify
     async def wallet(self, session, request):
         journal = await self._esi.get_wallet_journal(session)
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         time_until_expiry = math.floor((journal.expires - now).total_seconds())
         headers = {}
         if time_until_expiry > 0:
@@ -306,7 +308,7 @@ class Server:
             biology_implant = 2
 
         headers = {}
-        now = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+        now = datetime.datetime.now().replace(tzinfo=datetime.UTC)
         time_until_expiry = math.floor((earliest_expiry - now).total_seconds())
 
         if time_until_expiry > 0:
@@ -460,7 +462,7 @@ class Server:
             return
         if "start_date" not in queue[0]:
             return
-        current_time = datetime.datetime.now()
+        current_time = datetime.datetime.now(datetime.UTC)
         for queue_item in queue:
             finish_date = dateparse(queue_item["finish_date"])
             if current_time < finish_date:
