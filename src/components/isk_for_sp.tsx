@@ -1,5 +1,6 @@
 import React from "react";
 import {format_with_decimals, get_formatter} from "../misc/formatting";
+import {TimeoutHandle, setTimeoutWithVisibility} from "../misc/visibilitytimeout";
 
 interface ISKForSPPanelItemProps {
     name: string;
@@ -71,8 +72,11 @@ export default class ISKForSPPanel extends React.PureComponent<
     ISKForSPPanelProps,
     ISKForSPPanelState
 > {
+    _timeoutHandle: TimeoutHandle | null;
+
     constructor(props) {
         super(props);
+        this._timeoutHandle = null;
         this.state = {
             lsi_price: null,
             ssi_price: null,
@@ -82,7 +86,7 @@ export default class ISKForSPPanel extends React.PureComponent<
         };
     }
 
-    async componentDidMount() {
+    async refreshPricingData() {
         const data = await (
             await fetch("/skilltrades", {
                 credentials: "same-origin",
@@ -101,6 +105,22 @@ export default class ISKForSPPanel extends React.PureComponent<
                 duration: d[4],
             })),
         });
+    }
+
+    async componentDidMount() {
+        await this.refreshPricingData();
+        this.pricingCycle();
+    }
+
+    pricingCycle() {
+        this._timeoutHandle = setTimeoutWithVisibility(async () => {
+            await this.refreshPricingData();
+            this.pricingCycle();
+        }, 1000 * 60 * 30);
+    }
+
+    async componentWillUnmount() {
+        this._timeoutHandle?.cancel();
     }
 
     get_injector_isk_sp(): ISKForSPItemData[] {
