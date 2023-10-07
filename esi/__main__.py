@@ -166,9 +166,12 @@ class Server:
             "esi-clones.read_clones.v1",
             "esi-clones.read_implants.v1",
         ]
-        account_id = await get_account_id(request)
-        if account_id == self._internal_account_id:
-            scopes.append("esi-markets.structure_markets.v1")
+        try:
+            account_id = await get_account_id(request)
+            if account_id == self._internal_account_id:
+                scopes.append("esi-markets.structure_markets.v1")
+        except Exception:
+            pass
         session = await get_session(request)
         session["state"] = int.from_bytes(os.urandom(8), "little")
         url = (
