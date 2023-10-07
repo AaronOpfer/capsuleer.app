@@ -3,6 +3,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import {character_url} from "./misc/urls";
+import {setTimeoutWithVisibility, TimeoutHandle} from "./misc/visibilitytimeout";
 import CharacterSkills from "./character_skills";
 import {
     NeedsLoginError,
@@ -43,6 +44,7 @@ interface BodyState {
 
 class Body extends React.Component<BodyProps, BodyState> {
     update_interval: any | null;
+    refresh_timeout: TimeoutHandle | null;
 
     constructor(props: any) {
         super(props);
@@ -53,12 +55,14 @@ class Body extends React.Component<BodyProps, BodyState> {
             split_view: split_view,
         };
         this.update_interval = null;
+        this.refresh_timeout = null;
         this.on_resize = this.on_resize.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
         const state = this.state;
         if (prevProps.character_id != this.props.character_id) {
+            this.setState({char_skills: null});
             this.load_character_data();
         }
     }
@@ -74,6 +78,12 @@ class Body extends React.Component<BodyProps, BodyState> {
 
     componentWillUnmount() {
         window.removeEventListener("resize", this.on_resize);
+        if (this.update_interval) {
+            clearInterval(this.update_interval);
+        }
+        if (this.refresh_timeout) {
+            this.refresh_timeout.cancel();
+        }
     }
 
     on_resize() {
@@ -93,9 +103,11 @@ class Body extends React.Component<BodyProps, BodyState> {
     }
 
     async load_character_data() {
-        this.setState({char_skills: null});
         if (this.update_interval) {
             clearInterval(this.update_interval);
+        }
+        if (this.refresh_timeout) {
+            this.refresh_timeout.cancel();
         }
 
         const character_id = this.props.character_id;
@@ -105,14 +117,15 @@ class Body extends React.Component<BodyProps, BodyState> {
             if (this.props.character_id !== character_id) {
                 return;
             }
-            this.setState({
-                char_skills,
-            });
+            this.setState({char_skills});
             if (!char_skills.skill_queue_paused) {
                 this.update_interval = setInterval(() => {
                     char_skills.update();
                     this.forceUpdate();
                 }, 1000);
+                this.refresh_timeout = setTimeoutWithVisibility(() => {
+                    this.load_character_data();
+                }, 1000 * 5 * 60);
             }
         } catch (err) {
             if (err instanceof CharacterNeedsUpdated) {
