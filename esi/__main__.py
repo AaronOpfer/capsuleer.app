@@ -334,7 +334,9 @@ class Server:
     async def _skill_trade_task(self):
         while True:
             try:
-                characters = await self.db.get_characters(self._internal_account_id)
+                characters, validity = await self.db.get_characters(
+                    self._internal_account_id
+                )
                 if not characters:
                     raise Exception("No internal account characters!")
                 character = characters[0]
@@ -364,28 +366,30 @@ class Server:
             else {"Cache-Control": f"public, max-age={time_until_expiry}"},
         )
 
-    async def _characters(self, request) -> tuple[int, list[Character]]:
+    async def _characters(self, request) -> tuple[int, list[Character], list[bool]]:
         account_id = await get_account_id(request)
-        characters = await self.db.get_characters(account_id)
+        characters, validity = await self.db.get_characters(account_id)
         if not characters:
             # Prevent a weird "trap" where an account has no characters;
             # force the user to add another character by putting them
             # through the auth process again.
             raise aiohttp.web.HTTPUnauthorized() from None
-        return account_id, characters
+        return account_id, characters, validity
 
     async def characters(self, request):
-        _, characters = await self._characters(request)
-        return aiohttp.web.json_response(characters, dumps=dumps)
+        _, characters, validity = await self._characters(request)
+        return aiohttp.web.json_response(
+            [(*c, v) for c, v in zip(characters, validity)], dumps=dumps
+        )
 
     async def characters_training(self, request):
-        account_id, characters = await self._characters(request)
+        account_id, characters, validity = await self._characters(request)
         fut_to_id = {
             asyncio.ensure_future(
                 self._single_character_training(account_id, c.id)
             ): c.id
-            for c in characters
-            if c.valid
+            for valid, c in zip(validity, characters)
+            if valid
         }
         expected_count = len(fut_to_id)
         completed_count = 0

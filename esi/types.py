@@ -21,7 +21,6 @@ class AccessToken(NamedTuple):
 class Character(NamedTuple):
     id: int
     name: str
-    valid: bool
 
 
 class AcceleratorInfo(NamedTuple):
@@ -99,11 +98,14 @@ class ABCSession(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def access_token(self) -> AccessToken:
+    def access_token(self) -> AccessToken | None:
         pass
 
     @abc.abstractmethod
     async def set_access_token(self, new_token: AccessToken | None):
+        """
+        Called with the result of attempting to use the refresh token.
+        """
         pass
 
     @property

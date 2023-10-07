@@ -1,15 +1,10 @@
 import asyncio
 import logging
+import collections
 
 import asyncpg
 
-from .types import (
-    Character,
-    ABCSession,
-    AccessToken,
-    NoSuchCharacter,
-    CharacterNeedsUpdated,
-)
+from .types import Character, ABCSession, AccessToken, NoSuchCharacter
 
 logger = logging.getLogger(__name__)
 
@@ -40,20 +35,24 @@ class DatabaseSession(ABCSession):
         if record is None:
             raise NoSuchCharacter()
         if record["access_token"] is None:
-            raise CharacterNeedsUpdated()
-        self._access_token = AccessToken(
-            record["access_token"],
-            record["access_token_expires"],
-            record["refresh_token"],
-        )
-        self._character = Character(self._character_id, record["name"], True)
+            self._access_token = None
+        else:
+            self._access_token = AccessToken(
+                record["access_token"],
+                record["access_token_expires"],
+                record["refresh_token"],
+            )
+        self._character = Character(self._character_id, record["name"])
         return self
 
     @property
-    def access_token(self):
+    def access_token(self) -> AccessToken | None:
         return self._access_token
 
-    async def set_access_token(self, new_token):
+    async def set_access_token(self, new_token: AccessToken | None) -> None:
+        """
+        Called with the result of attempting to use the refresh token.
+        """
         async with self._pool.acquire() as conn:
             if new_token is None:
                 result = await conn.execute(
@@ -87,11 +86,20 @@ class Database:
     app-server, we will reuse their session object instead of create a new one.
     """
 
-    __slots__ = "_connargs", "_cache", "_pool"
+    # How long to wait before purging an unused session.
+    SESSION_CACHE_TIME = 300
+
+    __slots__ = "_connargs", "_cache", "_pool", "_loop", "_locks", "_timerhandles"
 
     def __init__(self, **kwargs):
         self._connargs = kwargs
-        self._cache = {}  # TODO Perpetual caching is not great!
+        self._loop = asyncio.get_running_loop()
+        # The locks protect multiple simultaneous accesses to the session cache.
+        self._locks = collections.defaultdict(asyncio.Lock)
+        # This is a _positive_ cache for Database sessions. It is cleared out
+        # by installing asyncio timers on the self._loop above.
+        self._cache: dict[tuple[int, int], DatabaseSession] = {}
+        self._timerhandles: dict[tuple[int, int], asyncio.TimerHandle] = {}
 
     async def __aenter__(self):
         await self.connect()
@@ -99,19 +107,48 @@ class Database:
 
     async def __aexit__(self, a, b, c):
         await self._pool.close()
+        for timerhandle in self._timerhandles.values():
+            timerhandle.cancel()
+        self._timerhandles.clear()
+        self._cache.clear()
 
     async def connect(self) -> None:
         self._pool = await asyncpg.create_pool(**self._connargs)
 
-    def get_session(self, account_id, character_id):
+    @staticmethod
+    def _clear(
+        timerhandles: dict[tuple[int, int], asyncio.TimerHandle],
+        cache: dict[tuple[int, int], DatabaseSession],
+        key: tuple[int, int],
+    ) -> None:
+        logger.debug("cleaning inactive session: account=%d character=%d", *key)
+        del timerhandles[key]
+        del cache[key]
+
+    def _reset_expiry(self, key: tuple[int, int]) -> None:
         try:
-            return asyncio.shield(self._cache[(account_id, character_id)])
+            self._timerhandles[key].cancel()
         except KeyError:
             pass
+        self._timerhandles[key] = self._loop.call_later(
+            self.SESSION_CACHE_TIME, self._clear, self._timerhandles, self._cache, key
+        )
 
-        task = asyncio.ensure_future(self._get_session(account_id, character_id))
-        self._cache[(account_id, character_id)] = task
-        return asyncio.shield(task)
+    async def get_session(self, account_id: int, character_id: int) -> DatabaseSession:
+        key = account_id, character_id
+        async with self._locks[key]:
+            try:
+                session = self._cache[key]
+            except KeyError:
+                pass
+            else:
+                self._reset_expiry(key)
+                return session
+
+            session = await self._get_session(account_id, character_id)
+            self._cache[key] = session
+            self._reset_expiry(key)
+            return session
 
     async def _get_session(self, account_id: int, character_id: int) -> DatabaseSession:
         new_session = DatabaseSession(self._pool, account_id, character_id)
@@ -141,7 +178,9 @@ class Database:
         )
         return record["id"]
 
-    async def get_characters(self, account_id):
+    async def get_characters(
+        self, account_id: int
+    ) -> tuple[list[Character], list[bool]]:
         async with self._pool.acquire() as conn:
             rows = await conn.fetch(
                 "SELECT character_id, name, "
@@ -150,7 +189,7 @@ class Database:
                 "ORDER BY create_time",
                 account_id,
             )
-        return [Character(r[0], r[1], r[2]) for r in rows]
+        return [Character(r[0], r[1]) for r in rows], [r[2] for r in rows]
 
     async def delete_character(self, account_id, character_id):
         async with self._pool.acquire() as conn:
@@ -223,5 +262,13 @@ class Database:
                 )
                 if record != "UPDATE 1":
                     raise Exception(record)
+
+            try:
+                character_session = self._cache[(account_id, character.id)]
+            except KeyError:
+                pass
+            else:
+                character_session._access_token = access_token
+                self._reset_expiry((account_id, character.id))
 
         return account_id

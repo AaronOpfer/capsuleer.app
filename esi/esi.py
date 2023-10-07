@@ -35,7 +35,7 @@ def _requires_session(f):
     return wrapper
 
 
-def _make_header_from_token(token: AccessToken):
+def _make_header_from_token(token: AccessToken) -> dict[str, str]:
     return {
         "User-Agent": "capsuleer.app me@aaronopfer.com",
         "Host": "esi.evetech.net",
@@ -44,7 +44,7 @@ def _make_header_from_token(token: AccessToken):
     }
 
 
-def _make_header_from_session(session: ABCSession):
+def _make_header_from_session(session: ABCSession) -> dict[str, str]:
     headers = _make_header_from_token(session.access_token)
     headers["X-Character"] = session.character.name
     return headers
@@ -386,8 +386,11 @@ class ESISession(PublicESISession):
             await asyncio.shield(refresh_task)
             return
 
-        # No refresh in progress. check if the token is valid.
+        # No refresh in progress. check if the token is present and valid.
         token = session.access_token
+        if token is None:
+            raise CharacterNeedsUpdated
+
         if token.expired_after > datetime.datetime.now(datetime.UTC):
             # Expiration is in the future. no work to do.
             return
@@ -411,7 +414,7 @@ class ESISession(PublicESISession):
             resp.raise_for_status()
             result = await resp.json()
             return (
-                Character(int(result["CharacterID"]), result["CharacterName"], True),
+                Character(int(result["CharacterID"]), result["CharacterName"]),
                 result["CharacterOwnerHash"],
             )
 
