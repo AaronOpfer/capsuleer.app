@@ -1,31 +1,29 @@
 import os
-import math
 import ast
+import json
+import math
 import time
 import asyncio
-import argparse
-import configparser
 import logging
-import subprocess
-import operator
-import json
-import functools
+import argparse
 import datetime
+import operator
+import functools
+import subprocess
+import configparser
 
 import aiohttp
 import aiohttp.web
 import aiohttp_session
+from aiohttp.abc import AbstractAccessLogger
 from aiohttp_session import get_session
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
-from aiohttp.abc import AbstractAccessLogger
 
 from .db import Database
-
 from .esi import ESISession
-from .types import NoSuchCharacter, CharacterNeedsUpdated, ItemTypes, Character
-from .isk_for_sp import get_isk_for_sp_options
 from .data import implant_type_id_to_learning_bonus
-
+from .types import Character, ItemTypes, NoSuchCharacter, CharacterNeedsUpdated
+from .isk_for_sp import get_isk_for_sp_options
 
 logger = logging.getLogger(__name__)
 dumps = functools.partial(json.dumps, separators=(",", ":"))

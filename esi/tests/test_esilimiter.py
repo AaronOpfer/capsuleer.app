@@ -1,8 +1,8 @@
-from esi.types import ESILimiter
 import asyncio
-import unittest
 import datetime
+import unittest
 
+from esi.types import ESILimiter
 
 TIME_1 = datetime.datetime.now(datetime.timezone.utc)
 TIME_2 = TIME_1 + datetime.timedelta(seconds=5)
@@ -11,7 +11,6 @@ TIME_3 = TIME_2 + datetime.timedelta(seconds=5)
 
 class TestESILimiter(unittest.IsolatedAsyncioTestCase):
     async def test_normal(self):
-
         limiter = ESILimiter()
         limiter.set_remaining(TIME_1, 1, 60)
 

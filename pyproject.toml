@@ -1,0 +1,4 @@
+[tool.isort]
+profile = "black"
+py_version = 311
+length_sort = true

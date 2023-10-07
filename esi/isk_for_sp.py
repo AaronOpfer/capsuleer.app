@@ -1,10 +1,9 @@
-import operator
 import logging
 import datetime
+import operator
 
 from .esi import ESISession
-from .types import ABCSession, ItemTypes, AcceleratorInfo
-
+from .types import ItemTypes, ABCSession, AcceleratorInfo
 
 logger = logging.getLogger(__name__)
 

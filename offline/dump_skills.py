@@ -1,10 +1,11 @@
 # Adapted from:
 # https://github.com/AlbertoRFer/Static-ESI-skill-dump/blob/bac96b8297c6828cf2e06b870ebd4fd64b46025c/dump_skills.py
-import asyncio
 import json
-from collections import deque
-import itertools
+import asyncio
 import logging
+import itertools
+from collections import deque
+
 from esi.esi import PublicESISession
 
 

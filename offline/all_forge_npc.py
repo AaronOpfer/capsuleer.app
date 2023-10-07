@@ -1,7 +1,7 @@
-import asyncio
-import pprint
-import operator
 import enum
+import pprint
+import asyncio
+import operator
 
 from esi.esi import PublicESISession
 

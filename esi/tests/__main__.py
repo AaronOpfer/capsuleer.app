@@ -1,6 +1,6 @@
-import unittest
-import os.path
 import logging
+import os.path
+import unittest
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

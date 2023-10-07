@@ -1,13 +1,14 @@
 import asyncio
-import asyncpg
 import logging
 
+import asyncpg
+
 from .types import (
+    Character,
     ABCSession,
+    AccessToken,
     NoSuchCharacter,
     CharacterNeedsUpdated,
-    AccessToken,
-    Character,
 )
 
 logger = logging.getLogger(__name__)
