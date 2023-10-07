@@ -45,9 +45,11 @@ The offline directory contains scripts for generating static data used by variou
 
 ## Setting up the NPC Corporation Character Token
 
-In order to scan public citadel markets, a one-time setup of adding a character who is in an NPC corporation to the site who also has the additional  `esi-markets.structure_markets.v1` scope must be performed. This is because there is techincally no such thing as a "public" Citaldel: Citadel ACL rules can be whitelists or blacklists, and so market queries must occur on behalf of a character in order to avoid returning private market data to anybody. Therefore our definition of a "public" Citadel is one that allows trade with characters in NPC/Newbie Corporations, since presumably anyone on the blacklist could create an alt and make a purchase that way.
+In order to scan public citadel markets, a one-time setup of adding a character who is in an NPC corporation to the site who also has the additional `esi-markets.structure_markets.v1` scope must be performed. This is because there is techincally no such thing as a "public" Citaldel: Citadel ACL rules can be whitelists or blacklists, and so market queries must occur on behalf of a character in order to avoid returning private market data to anybody. Therefore our definition of a "public" Citadel is one that allows trade with characters in NPC/Newbie Corporations, since presumably anyone on the blacklist could create an alt and make a purchase that way.
 
 In order to add this character, use an incognito window and use the normal SSO flow until you've reached the "Authorize" button. Then, doctor the URL to include the `esi-markets.structure_markets.v1` scope and reload. Finally, determine the internal account ID that capsuleer.app allocated for this character and place it in esi.conf as `internal_account_id` config entry.
+
+If you log into this account and again in the future, the `esi-markets.structure_markets.v1` scope will be added to the URL automatically.
 
 ## Persistent Components
 

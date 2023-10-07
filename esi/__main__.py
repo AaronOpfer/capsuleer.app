@@ -162,6 +162,16 @@ class Server:
         )
 
     async def auth_redirect(self, request):
+        scopes = [
+            "esi-skills.read_skills.v1",
+            "esi-skills.read_skillqueue.v1",
+            "esi-wallet.read_character_wallet.v1",
+            "esi-clones.read_clones.v1",
+            "esi-clones.read_implants.v1",
+        ]
+        account_id = await get_account_id(request)
+        if account_id == self._internal_account_id:
+            scopes.append("esi-markets.structure_markets.v1")
         session = await get_session(request)
         session["state"] = int.from_bytes(os.urandom(8), "little")
         url = (
@@ -169,14 +179,9 @@ class Server:
             "response_type=code"
             "&redirect_uri=%s/callback"
             "&client_id=%s"
-            "&scope="
-            "esi-skills.read_skills.v1 "
-            "esi-skills.read_skillqueue.v1 "
-            "esi-wallet.read_character_wallet.v1 "
-            "esi-clones.read_clones.v1 "
-            "esi-clones.read_implants.v1"
+            "&scope=%s"
             "&state=%d"
-        ) % (self._base_url, self._client_id, session["state"])
+        ) % (self._base_url, self._client_id, " ".join(scopes), session["state"])
         raise aiohttp.web.HTTPFound(url)
 
     async def logout(self, request):
