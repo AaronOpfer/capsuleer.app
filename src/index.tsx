@@ -359,18 +359,6 @@ class Application extends React.Component<{}, ApplicationState> {
         this.setState({show_login: true});
     }
 
-    componentDidMount() {
-        window.reattempt_download = this.reattempt_download_character_data.bind(this);
-    }
-
-    reattempt_download_character_data() {
-        if (this.state.show_login == false) {
-            // FIXME ugly hack!
-            window.location.reload();
-        }
-        this.setState({show_login: false});
-    }
-
     static getDerivedStateFromError(error) {
         if (error instanceof NeedsLoginError) {
             return {show_login: true, character_id: null};

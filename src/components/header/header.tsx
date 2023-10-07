@@ -117,12 +117,7 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
                         />
                     ))}
                     <div className="spacer" />
-                    <a
-                        className="header_add_character"
-                        target="_blank"
-                        title="Add another character"
-                        href="/auth"
-                    >
+                    <a className="header_add_character" title="Add another character" href="/auth">
                         +
                     </a>
                 </div>

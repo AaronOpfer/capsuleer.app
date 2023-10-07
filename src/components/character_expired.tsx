@@ -10,7 +10,7 @@ export default class CharacterExpired extends React.PureComponent<CharacterExpir
         return (
             <div className="character_expired">
                 <h3>Log in with {this.props.character_name} again</h3>
-                <a href="/auth" target="_blank">
+                <a href="/auth">
                     <img src="https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-white-large.png" />
                 </a>
                 <p>

@@ -11,7 +11,6 @@ export interface CharacterNameAndId {
 declare global {
     interface Window {
         esi_early_fetch: undefined | Promise<any>;
-        reattempt_download: any;
         show_login: any; // FIXME this is a HACK!
     }
 }

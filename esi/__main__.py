@@ -130,8 +130,6 @@ class Server:
         self._esi = ESISession(esi_url, client_id, client_secret_key)
         self._cached_skill_trades = 0, None
         self._internal_account_id = internal_account_id
-        with open("static/callback.html") as f:
-            self._callback_source = f.read()
 
     async def esi_callback(self, request):
         session = await get_session(request)
@@ -158,10 +156,7 @@ class Server:
             character,
             session["account_id"],
         )
-        return aiohttp.web.Response(
-            body=self._callback_source,
-            headers={"Content-Type": "text/html;charset=UTF-8"},
-        )
+        raise aiohttp.web.HTTPFound(f"{self._base_url}/")
 
     async def auth_redirect(self, request):
         scopes = [

@@ -7,7 +7,7 @@ export default class LoginForm extends React.PureComponent<{}, {}> {
                 <img className="phone" src="/s/phone.png" alt="Sample" />
                 <div className="login_content">
                     <h3>Login to view your character's skills</h3>
-                    <a href="/auth" target="_blank">
+                    <a href="/auth">
                         <img src="https://web.ccpgamescdn.com/eveonlineassets/developers/eve-sso-login-white-large.png" />
                     </a>
                     <p className="boring_privacy">
