@@ -137,7 +137,30 @@ class Server:
         try:
             session_state = int(session.pop("state"))
         except (KeyError, ValueError, TypeError):
-            return aiohttp.web.Response(status=400, text="missing/invalid state")
+            explanation_text = (
+                "<p>Maybe you should try restarting your login flow "
+                "from the beginning. If this issue persists, it may "
+                "be caused by a browser extension or similar blocking "
+                "cookies.</p>"
+            )
+            if "account_id" in session:
+                explanation_text = (
+                    "<p>You're already logged in. If you weren't trying "
+                    "to add a character, then you can just go back to "
+                    "the homepage.</p>"
+                )
+
+            return aiohttp.web.Response(
+                status=400,
+                headers={"Content-Type": "text/html; charset=utf-8"},
+                text=(
+                    f"<style>a {{ color: #aaf }} body {{ font-size: 2em; background: #222; color: #eef; }}</style>"
+                    f'<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">'
+                    f"<p>Missing/invalid SSO flow session state.</p>"
+                    f"{explanation_text}"
+                    f'<p><a href="{self._base_url}/">Click here to go back to Home</a></p>'
+                ),
+            )
 
         if session_state != int(query["state"]):
             return aiohttp.web.Response(status=400)
