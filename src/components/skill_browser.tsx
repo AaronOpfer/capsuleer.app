@@ -50,7 +50,7 @@ const single_attribute_doms = {
     ),
 };
 
-const attribute_doms: {[attribute: number]: React.Component[]} = {};
+const attribute_doms: {[attribute: number]: React.ReactNode[]} = {};
 attribute_types.forEach((value, key) => {
     attribute_doms[key] = value.split("/").map((v) => single_attribute_doms[v]);
 });

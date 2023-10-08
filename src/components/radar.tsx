@@ -85,9 +85,8 @@ const outline = (
     </g>
 );
 
-export class RadarOutline extends React.PureComponent<{}, {}> {
+export class RadarOutline extends React.PureComponent<React.PropsWithChildren<{}>, {}> {
     render() {
-        const props = this.props;
         return (
             <svg
                 className="neural_map_radar"
