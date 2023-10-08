@@ -63,6 +63,10 @@ export function format_duration(seconds: number, show_all_figures?: boolean) {
             } else {
                 if (m > 30) {
                     h += 1;
+                    if (h == 24) {
+                        d += 1;
+                        h = 0;
+                    }
                 }
 
                 m = s = 0;
@@ -70,6 +74,14 @@ export function format_duration(seconds: number, show_all_figures?: boolean) {
         } else if (h) {
             if (s > 30) {
                 m += 1;
+                if (m == 60) {
+                    h += 1;
+                    m = 0;
+                    if (h == 24) {
+                        d += 1;
+                        h = 0;
+                    }
+                }
             }
             s = 0;
         }
