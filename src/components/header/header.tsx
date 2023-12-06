@@ -1,5 +1,6 @@
 import React from "react";
 import CharacterSelect from "./character_select";
+import {setTimeoutWithVisibility, TimeoutHandle} from "../../misc/visibilitytimeout";
 import {
     CharacterTrainingProgress,
     CharacterNameAndId,
@@ -19,7 +20,7 @@ interface HeaderState {
 
 export default class Header extends React.PureComponent<HeaderProps, HeaderState> {
     earliest_end_date: Date | undefined;
-    timeout: number | undefined;
+    timeout: TimeoutHandle | undefined;
     hovered: boolean;
 
     constructor(props) {
@@ -56,7 +57,8 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
         }
 
         this.setState({training_data, current_time: now});
-        this.earliest_end_date = undefined;
+        this.earliest_end_date = new Date;
+        this.earliest_end_date.setMinutes(this.earliest_end_date.getMinutes() + 10);
         for await (const progress of download_character_training_progress()) {
             if (
                 progress.end_date != undefined &&
@@ -73,7 +75,7 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
 
     update_time() {
         if (this.timeout !== undefined) {
-            clearTimeout(this.timeout);
+            this.timeout.cancel();
         }
         const now = +new Date();
         let delay = this.hovered ? 1000 : 10000;
@@ -85,7 +87,7 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
             }
             delay = Math.min(earliest - now, delay);
         }
-        this.timeout = window.setTimeout(() => {
+        this.timeout = setTimeoutWithVisibility(() => {
             this.timeout = undefined;
             this.update_time();
         }, delay);
