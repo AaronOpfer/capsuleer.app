@@ -266,6 +266,7 @@ footer { text-align: center; }
         display: flex;
         justify-content: center;
         align-items: center;
+        margin: 2px 5px;
     }
 }
 
@@ -695,8 +696,7 @@ footer { text-align: center; }
     display: flex;
     border-top: 2px solid var(--skillcat-e);
     border-radius: 5px;
-    margin: 0 3px 3px 3px;
-    padding: 2px;
+    margin: 2px 5px 5px 5px;
 }
 
 .tab_content > div:first-child {

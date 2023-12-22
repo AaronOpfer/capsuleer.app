@@ -24,7 +24,7 @@ async def amain():
     )
     args = parser.parse_args()
     logging.basicConfig()
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.WARNING)
     formatter = logging.Formatter(
         "%(asctime)s|%(name)s|%(levelname)s|%(message)s|%(funcName)s:%(lineno)s"
     )
@@ -132,7 +132,6 @@ async def do_work(session):
             old_data = json.load(f)
             new_data = json.loads(json.dumps(new_data))
             if old_data == new_data:
-                print("Skill data has not changed", file=sys.stderr)
                 sys.exit(1)
     except FileNotFoundError:
         pass
