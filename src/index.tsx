@@ -149,15 +149,15 @@ class Body extends React.Component<BodyProps, BodyState> {
 
         switch (this.state.view) {
             case CurrentView.skillQueue:
-                view = <SkillQueue data={char_skills} />;
+                view = <SkillQueue key="view" data={char_skills} />;
                 break;
             case CurrentView.none:
                 break;
             case CurrentView.wallet:
-                view = <Wallet character_id={this.props.character_id} />;
+                view = <Wallet key="view" character_id={this.props.character_id} />;
                 break;
             case CurrentView.skillBrowser:
-                view = <SkillBrowser data={char_skills} />;
+                view = <SkillBrowser key="view" data={char_skills} />;
                 break;
         }
 
@@ -195,7 +195,7 @@ class Body extends React.Component<BodyProps, BodyState> {
                 <div className="tab_bar">{tabs}</div>
                 <div className={"tab_content" + (this.state.split_view ? " split_view" : "")}>
                     {view}
-                    {this.state.split_view ? <SkillQueue data={char_skills} /> : null}
+                    {this.state.split_view ? <SkillQueue key="split_view" data={char_skills} /> : null}
                 </div>
             </>
         );
