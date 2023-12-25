@@ -224,7 +224,7 @@ footer { text-align: center; }
     z-index: 1;
     position: absolute;
     font-size: 0.8em;
-    border: 0.5em solid rgba(0, 0, 0, 0.8);
+    padding: 0.5em;
     border-radius: 0.5em;
     background: black;
     text-align: left;
