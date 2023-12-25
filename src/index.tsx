@@ -195,7 +195,9 @@ class Body extends React.Component<BodyProps, BodyState> {
                 <div className="tab_bar">{tabs}</div>
                 <div className={"tab_content" + (this.state.split_view ? " split_view" : "")}>
                     {view}
-                    {this.state.split_view ? <SkillQueue key="split_view" data={char_skills} /> : null}
+                    {this.state.split_view ? (
+                        <SkillQueue key="split_view" data={char_skills} />
+                    ) : null}
                 </div>
             </>
         );

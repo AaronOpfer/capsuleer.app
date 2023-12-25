@@ -57,7 +57,7 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
         }
 
         this.setState({training_data, current_time: now});
-        this.earliest_end_date = new Date;
+        this.earliest_end_date = new Date();
         this.earliest_end_date.setMinutes(this.earliest_end_date.getMinutes() + 10);
         for await (const progress of download_character_training_progress()) {
             if (
