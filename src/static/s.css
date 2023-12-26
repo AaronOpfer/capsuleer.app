@@ -567,10 +567,6 @@ footer { text-align: center; }
     font-height: 0.9rem;
 }
 
-.skill_queue {
-    margin-top: 1em;
-}
-
 .split_view .skill_queue {
     width: 600px;
     flex-shrink: 0;
