@@ -10,7 +10,8 @@ export interface CharacterNameAndId {
 // index which starts a fetch.
 declare global {
     interface Window {
-        esi_early_fetch: undefined | Promise<any>;
+        early_download_characters: undefined | Promise<any>;
+        early_download_character_training_progress: undefined | Promise<any>;
         show_login: any; // FIXME this is a HACK!
     }
 }
@@ -20,9 +21,9 @@ export class CharacterNeedsUpdated extends Error {}
 
 export async function download_characters(): Promise<CharacterNameAndId[]> {
     let response;
-    if (typeof window != "undefined" && window.esi_early_fetch) {
-        const early_fetch = window.esi_early_fetch;
-        window.esi_early_fetch = undefined;
+    if (typeof window != "undefined" && window.early_download_characters) {
+        const early_fetch = window.early_download_characters;
+        window.early_download_characters = undefined;
         response = await early_fetch;
     } else {
         response = await fetch("/characters", {credentials: "same-origin"});
@@ -109,7 +110,13 @@ export interface CharacterTrainingProgress {
 }
 
 export async function* download_character_training_progress() {
-    const the_fetch = fetch("/characters/training", {credentials: "same-origin"});
+    let the_fetch;
+    if (typeof window != "undefined" && window.early_download_character_training_progress) {
+        the_fetch = window.early_download_character_training_progress;
+        window.early_download_character_training_progress = undefined;
+    } else {
+        the_fetch = fetch("/characters/training", {credentials: "same-origin"});
+    }
     for await (const line of makeTextFileLineIterator(the_fetch)) {
         const [character_id, skill_id, level, sp, start_date, end_date] = line.split(":");
         yield {
