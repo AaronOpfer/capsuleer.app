@@ -3,7 +3,7 @@ import pprint
 import asyncio
 import operator
 
-from esi.esi import PublicESISession
+from capsuleerapp.esi import PublicESISession
 
 
 async def amain():

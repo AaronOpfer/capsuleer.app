@@ -8,7 +8,7 @@ import argparse
 import itertools
 from collections import deque
 
-from esi.esi import PublicESISession
+from capsuleerapp.esi import PublicESISession
 
 
 async def amain():

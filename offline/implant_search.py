@@ -1,6 +1,6 @@
 import asyncio
 
-from esi.esi import PublicESISession
+from capsuleerapp.esi import PublicESISession
 
 
 async def amain():
