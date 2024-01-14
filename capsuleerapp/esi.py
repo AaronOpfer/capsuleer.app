@@ -92,8 +92,8 @@ async def request_with_retry(
 
                 return Response(res, resp)
 
-    for attempt in range(2):
-        sleep_length = 10 * attempt + random.randrange(5, 15)
+    for attempt in range(3):
+        sleep_length = attempt + random.uniform(0.5, 1.5)
         try:
             return await request()
         except aiohttp.ClientResponseError as exc:
