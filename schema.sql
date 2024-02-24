@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 11.11 (Debian 11.11-0+deb10u1)
--- Dumped by pg_dump version 11.11 (Debian 11.11-0+deb10u1)
+-- Dumped from database version 15.6 (Debian 15.6-0+deb12u1)
+-- Dumped by pg_dump version 15.6 (Debian 15.6-0+deb12u1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -17,7 +17,32 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: account_id_seq; Type: SEQUENCE; Schema: public; Owner: x
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+-- *not* creating schema, since initdb creates it
+
+
+--
+-- Name: calculate_default_display_order(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.calculate_default_display_order() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.display_order := (
+    SELECT COALESCE(MAX(display_order), 0) + 1
+    FROM character
+    WHERE account_id = NEW.account_id
+  );
+  RETURN NEW;
+END;
+$$;
+
+
+--
+-- Name: account_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.account_id_seq
@@ -28,14 +53,12 @@ CREATE SEQUENCE public.account_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.account_id_seq OWNER TO x;
-
 SET default_tablespace = '';
 
-SET default_with_oids = false;
+SET default_table_access_method = heap;
 
 --
--- Name: account; Type: TABLE; Schema: public; Owner: x
+-- Name: account; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.account (
@@ -44,10 +67,8 @@ CREATE TABLE public.account (
 );
 
 
-ALTER TABLE public.account OWNER TO x;
-
 --
--- Name: TABLE account; Type: COMMENT; Schema: public; Owner: x
+-- Name: TABLE account; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON TABLE public.account IS 'An account is a collection of characters that can be monitored by a single session.
@@ -56,7 +77,7 @@ A user logs into an account by logging into any EVE character associated with th
 
 
 --
--- Name: character; Type: TABLE; Schema: public; Owner: x
+-- Name: character; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public."character" (
@@ -67,14 +88,13 @@ CREATE TABLE public."character" (
     access_token_expires timestamp with time zone,
     name name NOT NULL,
     create_time timestamp with time zone DEFAULT now() NOT NULL,
-    owner_hash text NOT NULL
+    owner_hash text NOT NULL,
+    display_order integer DEFAULT 1 NOT NULL
 );
 
 
-ALTER TABLE public."character" OWNER TO x;
-
 --
--- Name: account account_pkey; Type: CONSTRAINT; Schema: public; Owner: x
+-- Name: account account_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.account
@@ -82,7 +102,7 @@ ALTER TABLE ONLY public.account
 
 
 --
--- Name: character character_pkey; Type: CONSTRAINT; Schema: public; Owner: x
+-- Name: character character_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."character"
@@ -90,7 +110,14 @@ ALTER TABLE ONLY public."character"
 
 
 --
--- Name: character character_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: x
+-- Name: character set_default_display_order; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER set_default_display_order BEFORE INSERT ON public."character" FOR EACH ROW EXECUTE FUNCTION public.calculate_default_display_order();
+
+
+--
+-- Name: character character_account_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."character"
@@ -100,3 +127,4 @@ ALTER TABLE ONLY public."character"
 --
 -- PostgreSQL database dump complete
 --
+

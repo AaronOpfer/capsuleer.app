@@ -403,6 +403,14 @@ class Server:
             [(*c, v) for c, v in zip(characters, validity)], dumps=dumps
         )
 
+    async def change_ordering(self, request):
+        order = await request.json()
+        if not isinstance(order, list) or not all(type(i) is int for i in order):
+            return aiohttp.web.Response(status=400, text="Invalid request")
+        account_id = await get_account_id(request)
+        await self.db.set_character_order(account_id, order)
+        return aiohttp.web.Response(status=200)
+
     async def characters_training(self, request):
         account_id, characters, validity = await self._characters(request)
         fut_to_id = {
@@ -514,6 +522,7 @@ class Server:
         app = aiohttp.web.Application()
         app.add_routes(
             [
+                aiohttp.web.post("/characters/ordering", self.change_ordering),
                 aiohttp.web.get("/auth", self.auth_redirect),
                 aiohttp.web.get("/callback", self.esi_callback),
                 aiohttp.web.get("/characters", self.characters),

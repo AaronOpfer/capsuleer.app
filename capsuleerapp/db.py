@@ -178,6 +178,21 @@ class Database:
         )
         return record["id"]
 
+    async def set_character_order(self, account_id: int, order: list[int]) -> None:
+        async with self._pool.acquire() as conn:
+            async with conn.transaction():
+                for idx, character_id in enumerate(order):
+                    res = await conn.execute(
+                        "UPDATE character "
+                        "SET display_order=$1 "
+                        "WHERE character_id =$2 AND account_id=$3",
+                        idx,
+                        character_id,
+                        account_id,
+                    )
+                    if res != "UPDATE 1":
+                        raise RuntimeError(res)
+
     async def get_characters(
         self, account_id: int
     ) -> tuple[list[Character], list[bool]]:
@@ -186,7 +201,7 @@ class Database:
                 "SELECT character_id, name, "
                 "access_token IS NOT NULL as valid "
                 "FROM character WHERE account_id=$1 "
-                "ORDER BY create_time",
+                "ORDER BY display_order, create_time",
                 account_id,
             )
         return [Character(r[0], r[1]) for r in rows], [r[2] for r in rows]
