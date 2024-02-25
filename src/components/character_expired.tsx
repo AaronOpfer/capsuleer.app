@@ -5,7 +5,20 @@ interface CharacterExpiredProps {
     on_delete_click: (character_name: string) => void;
 }
 
-export default class CharacterExpired extends React.PureComponent<CharacterExpiredProps, {}> {
+export default class CharacterExpired extends React.PureComponent<
+    CharacterExpiredProps,
+    Record<string, never>
+> {
+    constructor(props) {
+        super(props);
+        this.on_click = this.on_click.bind(this);
+    }
+
+    on_click(e: React.MouseEvent) {
+        this.props.on_delete_click(this.props.character_name);
+        e.preventDefault();
+    }
+
     render() {
         return (
             <div className="character_expired">
@@ -19,14 +32,7 @@ export default class CharacterExpired extends React.PureComponent<CharacterExpir
                 </p>
                 <p>
                     Alternatively, you can{" "}
-                    <a
-                        onClick={(e) => {
-                            this.props.on_delete_click(this.props.character_name);
-                            e.preventDefault();
-                        }}
-                        href=""
-                        className="delete_character"
-                    >
+                    <a onClick={this.on_click} href="" className="delete_character">
                         remove the character.
                     </a>
                     .

@@ -45,7 +45,7 @@ export function calculate_number_of_injectors(
         return 0;
     }
     let injectors = 0;
-    while (true) {
+    for (;;) {
         let si_effectiveness = 150000;
         if (sp < 5000000) {
             si_effectiveness = 500000;

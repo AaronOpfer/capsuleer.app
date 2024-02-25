@@ -47,10 +47,6 @@ function get_points_string(values) {
     return values.map(([x, y]) => `${x},${y}`).join(" ");
 }
 
-function get_points(ratios: number[]) {
-    return get_points_string(get_point_values(ratios));
-}
-
 const max_points = get_point_values([1, 1, 1, 1, 1]);
 const label_points = get_point_values([1.05, 1.2, 1.2, 1.2, 1.2]);
 const text_style: React.CSSProperties = {
@@ -85,7 +81,9 @@ const outline = (
     </g>
 );
 
-export class RadarOutline extends React.PureComponent<React.PropsWithChildren<{}>, {}> {
+export class RadarOutline extends React.PureComponent<
+    React.PropsWithChildren<Record<never, never>>
+> {
     render() {
         return (
             <svg
@@ -103,7 +101,7 @@ export class RadarOutline extends React.PureComponent<React.PropsWithChildren<{}
     }
 }
 
-export class Radar extends React.PureComponent<RadarProps, {}> {
+export class Radar extends React.PureComponent<RadarProps> {
     render() {
         const props = this.props;
         const attr_points = get_point_values(

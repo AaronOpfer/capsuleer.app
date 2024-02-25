@@ -32,7 +32,7 @@ export function get_formatter(prices: number[]) {
         }
         return zero_count;
     });
-    const zeroes = Math.min.apply(Math, trailing_zeros);
+    const zeroes = Math.min(...trailing_zeros);
     if (zeroes < 10) {
         return _get_formatter_cache[zeroes];
     }

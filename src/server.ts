@@ -10,9 +10,9 @@ export interface CharacterNameAndId {
 // index which starts a fetch.
 declare global {
     interface Window {
-        early_download_characters: undefined | Promise<any>;
-        early_download_character_training_progress: undefined | Promise<any>;
-        show_login: any; // FIXME this is a HACK!
+        early_download_characters: undefined | ReturnType<typeof fetch>;
+        early_download_character_training_progress: undefined | ReturnType<typeof fetch>;
+        show_login: () => void; // FIXME this is a HACK!
     }
 }
 
@@ -76,7 +76,8 @@ export async function download_wallet(character_id: number): Promise<WalletEntry
     if (json.length === 0) {
         return [];
     }
-    let [balance, last_date, string_table, entries] = json;
+    const [starting_balance, last_date, string_table, entries] = json;
+    let balance = starting_balance;
 
     return entries.map((e) => {
         const result = {

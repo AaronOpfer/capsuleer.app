@@ -4,7 +4,7 @@ import {TimeoutHandle, setTimeoutWithVisibility} from "../misc/visibilitytimeout
 
 interface ISKForSPPanelItemProps {
     name: string;
-    formatter: any;
+    formatter: (float) => string;
     image_type_id: number;
     price: number;
     isk_sp: number | null;
@@ -12,7 +12,7 @@ interface ISKForSPPanelItemProps {
     sp_day: number | null;
 }
 
-class ISKForSPPanelItem extends React.PureComponent<ISKForSPPanelItemProps, {}> {
+class ISKForSPPanelItem extends React.PureComponent<ISKForSPPanelItemProps, Record<string, never>> {
     render() {
         const s = this.props;
         return (
@@ -84,6 +84,8 @@ export default class ISKForSPPanel extends React.PureComponent<
             fake_implant: false,
             accelerators: [],
         };
+        this.on_fake_implant = this.on_fake_implant.bind(this);
+        this.on_fake_bio5 = this.on_fake_bio5.bind(this);
     }
 
     async refreshPricingData() {
@@ -244,7 +246,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                         BY-810 Implant:
                         <input
                             type="checkbox"
-                            onChange={(e) => this.on_fake_implant(e)}
+                            onChange={this.on_fake_implant}
                             checked={state.fake_implant}
                         />
                     </label>
@@ -260,7 +262,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                         Biology V:
                         <input
                             type="checkbox"
-                            onChange={(e) => this.on_fake_bio5(e)}
+                            onChange={this.on_fake_bio5}
                             checked={state.fake_biology_5}
                         />
                     </label>

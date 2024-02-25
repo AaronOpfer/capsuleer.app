@@ -8,7 +8,7 @@ interface CharSummaryProps {
     data: CharacterSkills | null;
 }
 
-export default class CharSummary extends React.Component<CharSummaryProps, {}> {
+export default class CharSummary extends React.Component<CharSummaryProps, Record<string, never>> {
     render() {
         const data = this.props.data;
 

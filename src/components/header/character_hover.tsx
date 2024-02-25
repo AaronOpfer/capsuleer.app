@@ -1,10 +1,12 @@
 import React from "react";
-import {CharacterTrainingProgress} from "../../server";
 import {skill_data} from "../../static_skill_data";
 import {format_duration} from "../../misc/formatting";
 import {CharacterSelectProps} from "./character_select";
 
-export class CharacterHover extends React.PureComponent<CharacterSelectProps, {}> {
+export class CharacterHover extends React.PureComponent<
+    CharacterSelectProps,
+    Record<string, never>
+> {
     render() {
         if (!this.props.valid) {
             return (

@@ -14,7 +14,7 @@ interface DurationProps {
     show_seconds?: boolean;
 }
 
-class Duration extends React.PureComponent<DurationProps, {}> {
+class Duration extends React.PureComponent<DurationProps, Record<string, never>> {
     render() {
         const {target_date, duration, className} = this.props;
         return (
@@ -32,7 +32,7 @@ interface SkillQueueProps {
     data: CharacterSkills | null;
 }
 
-export default class SkillQueue extends React.Component<SkillQueueProps, {}> {
+export default class SkillQueue extends React.Component<SkillQueueProps, Record<string, never>> {
     render() {
         const data = this.props.data;
         if (data == null) {
@@ -153,7 +153,7 @@ interface SkillQueueItemProps {
     index: number;
 }
 
-class SkillQueueItem extends React.PureComponent<SkillQueueItemProps, {}> {
+class SkillQueueItem extends React.PureComponent<SkillQueueItemProps, Record<string, never>> {
     render() {
         const props = this.props;
         return (

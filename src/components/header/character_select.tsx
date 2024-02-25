@@ -1,6 +1,5 @@
 import React from "react";
 import {character_url} from "../../misc/urls";
-import {skill_data} from "../../static_skill_data";
 import {CharacterTrainingProgress} from "../../server";
 import {CharacterHover} from "./character_hover";
 import {SkillProgress} from "./skill_progress";
@@ -9,7 +8,7 @@ export interface CharacterSelectProps {
     id: number;
     name: string;
     selected: boolean;
-    on_click: any;
+    on_click: (number, string, boolean) => void;
     valid: boolean;
     training: CharacterTrainingProgress | undefined;
     current_time: Date;

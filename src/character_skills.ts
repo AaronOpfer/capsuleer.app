@@ -29,12 +29,6 @@ interface CharacterSkillItem {
     sp: number;
 }
 
-enum BiologyImplant {
-    no_implant = 0,
-    BY805 = 1,
-    BY810 = 2,
-}
-
 export default class CharacterSkills {
     total_sp: number;
     unallocated_sp: number;

@@ -15,7 +15,7 @@ enum SkillsSorting {
     level,
 }
 interface SkillCategoryProps {
-    onClick: () => void;
+    on_category_click: (number) => void;
     name: string;
     skills: StaticSkill[];
     expanded: boolean;
@@ -68,6 +68,7 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
     constructor(props) {
         super(props);
         this.state = {description: null};
+        this.on_close = this.on_close.bind(this);
     }
 
     componentDidMount() {
@@ -82,7 +83,7 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
 
     async fetch_skill_data() {
         const skill_id = this.props.skill_id;
-        var response: Response;
+        let response: Response;
         // ESI API can just decide to fail sometimes, retrying can sometimes fix it.
         response = await fetch(`https://esi.evetech.net/latest/universe/types/${skill_id}/`);
         if (response.status > 502 && response.status < 504) {
@@ -99,12 +100,16 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
         this.setState({description: json.description});
     }
 
+    on_close() {
+        this.props.onClose();
+    }
+
     render() {
         const skill: StaticSkill = skill_data.skill(this.props.skill_id);
         const attribs = attribute_types[skill.attribute].split("/");
         return (
             <div className="focused_skill">
-                <div className="focused_skill_header" onClick={() => this.props.onClose()}>
+                <div className="focused_skill_header" onClick={this.on_close}>
                     <h3>
                         <img
                             width={32}
@@ -136,7 +141,7 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
 }
 
 interface SkillProps {
-    onClick: () => void;
+    on_skill_click: (number) => void;
     sp_min: number | null;
     training_level: number;
     id: number;
@@ -148,7 +153,11 @@ interface SkillProps {
     sp: number | undefined;
 }
 
-class Skill extends React.PureComponent<SkillProps, {}> {
+class Skill extends React.PureComponent<SkillProps, Record<string, never>> {
+    on_click = () => {
+        this.props.on_skill_click(this.props.id);
+    };
+
     render() {
         const props = this.props;
         let class_name = "s";
@@ -159,7 +168,7 @@ class Skill extends React.PureComponent<SkillProps, {}> {
             next_level = Math.max(props.level, props.training_level) + 1;
         }
 
-        let skill_time: any | null = null;
+        let skill_time: React.ReactElement | null = null;
         if (props.sp_min && next_level < 6) {
             const last_level_sp = sp_required(next_level - 1, props.rank);
             const sp_to_train =
@@ -174,9 +183,7 @@ class Skill extends React.PureComponent<SkillProps, {}> {
         return (
             <div
                 className={`skill${props.level != null ? "" : " not_injected"}`}
-                onClick={() => {
-                    this.props.onClick();
-                }}
+                onClick={this.on_click}
             >
                 <span className="skill_lhand_details">
                     <span className={class_name}></span>
@@ -188,11 +195,15 @@ class Skill extends React.PureComponent<SkillProps, {}> {
         );
     }
 }
-class SkillCategory extends React.PureComponent<SkillCategoryProps, {}> {
+class SkillCategory extends React.PureComponent<SkillCategoryProps, Record<string, never>> {
+    on_click = () => {
+        this.props.on_category_click(this.props.id);
+    };
+
     render() {
         return (
             <div
-                onClick={this.props.onClick}
+                onClick={this.on_click}
                 className={"skill_category " + (this.props.expanded ? "expanded" : "")}
                 data-cid={this.props.id}
             >
@@ -204,18 +215,18 @@ class SkillCategory extends React.PureComponent<SkillCategoryProps, {}> {
 }
 
 interface SkillCategoriesProps {
-    on_category_change: any;
+    on_category_change: (number) => void;
     active_category: number | null;
 }
 
-class SkillCategories extends React.PureComponent<SkillCategoriesProps, {}> {
+class SkillCategories extends React.PureComponent<SkillCategoriesProps, Record<string, never>> {
     render() {
         const children = skill_data.categories.map((category) => {
             return (
                 <SkillCategory
                     key={category.id}
                     {...category}
-                    onClick={this.props.on_category_change.bind(this, category.id)}
+                    on_category_click={this.props.on_category_change}
                     expanded={category.id === this.props.active_category}
                 />
             );
@@ -241,6 +252,7 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
     constructor(props) {
         super(props);
         this.state = {focused_skill: null};
+        this.on_focus_close = this.on_focus_close.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -249,6 +261,10 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
         }
     }
 
+    on_skill_click = (skill_id: number) => {
+        this.setState({focused_skill: skill_id});
+    };
+
     render_skill(skill: StaticSkill) {
         const char_skills = this.props.data ? this.props.data.skills : {};
         return (
@@ -256,24 +272,21 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
                 key={skill.id}
                 {...char_skills[skill.id]}
                 {...skill}
-                onClick={() => {
-                    this.setState({focused_skill: skill.id});
-                }}
+                on_skill_click={this.on_skill_click}
                 training_level={this.props.training_levels[skill.id] || 0}
                 sp_min={this.props.data ? this.props.data.sp_per_minute(skill.attribute) : 0}
             />
         );
     }
 
+    on_focus_close() {
+        this.setState({focused_skill: null});
+    }
+
     render() {
         if (this.state.focused_skill !== null) {
             return (
-                <FocusedSkill
-                    skill_id={this.state.focused_skill}
-                    onClose={() => {
-                        this.setState({focused_skill: null});
-                    }}
-                />
+                <FocusedSkill skill_id={this.state.focused_skill} onClose={this.on_focus_close} />
             );
         }
         if (!this.props.skills) {

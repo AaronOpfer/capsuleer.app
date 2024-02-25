@@ -6,13 +6,13 @@ export interface StaticSkill {
     readonly name: string,
     readonly rank: number,
     readonly attribute: number
-};
+}
 
 export interface StaticSkillCategory {
     readonly id: number,
     readonly name: string,
     readonly skills: StaticSkill[]
-};
+}
 
 export class StaticSkillData {
     _ids: { [id: string]: StaticSkill|StaticSkillCategory };
@@ -55,6 +55,6 @@ export class StaticSkillData {
     category(id: number):StaticSkillCategory {
         return this._ids[id] as StaticSkillCategory;
     }
-};
+}
 
 export const skill_data = new StaticSkillData(skill_data_raw);

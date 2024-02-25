@@ -26,7 +26,7 @@ import Wallet from "./components/wallet";
 interface BodyProps {
     character_name: string;
     character_id: number;
-    invalidate_character: any;
+    invalidate_character: (number) => void;
 }
 
 enum CurrentView {
@@ -43,10 +43,10 @@ interface BodyState {
 }
 
 class Body extends React.Component<BodyProps, BodyState> {
-    update_interval: any | null;
+    update_interval: ReturnType<typeof setInterval> | null;
     refresh_timeout: TimeoutHandle | null;
 
-    constructor(props: any) {
+    constructor(props) {
         super(props);
         const split_view = window.document.body.clientWidth >= 1200;
         this.state = {
@@ -59,8 +59,7 @@ class Body extends React.Component<BodyProps, BodyState> {
         this.on_resize = this.on_resize.bind(this);
     }
 
-    componentDidUpdate(prevProps, prevState, snapshot) {
-        const state = this.state;
+    componentDidUpdate(prevProps) {
         if (prevProps.character_id != this.props.character_id) {
             this.setState({char_skills: null});
             this.load_character_data();
@@ -218,7 +217,10 @@ interface AuthenticatedContentState {
     valid: boolean;
 }
 
-class AuthenticatedContent extends React.Component<{}, AuthenticatedContentState> {
+class AuthenticatedContent extends React.Component<
+    Record<string, never>,
+    AuthenticatedContentState
+> {
     constructor(props) {
         super(props);
         this.state = {
@@ -257,7 +259,7 @@ class AuthenticatedContent extends React.Component<{}, AuthenticatedContentState
         ) {
             return;
         }
-        let previous_characters = this.state.characters;
+        const previous_characters = this.state.characters;
         this.setState({characters: null});
         try {
             await delete_character(character_id);
@@ -360,7 +362,7 @@ interface ApplicationState {
     show_error: boolean;
 }
 
-class Application extends React.Component<{}, ApplicationState> {
+class Application extends React.Component<Record<string, never>, ApplicationState> {
     constructor(props) {
         super(props);
         window.show_login = this.show_login = this.show_login.bind(this);
