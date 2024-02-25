@@ -16,6 +16,7 @@ export interface CharacterSelectProps {
 
 interface CharacterSelectState {
     is_hovered: boolean;
+    is_mousedown: boolean;
 }
 
 export default class CharacterSelect extends React.PureComponent<
@@ -24,9 +25,12 @@ export default class CharacterSelect extends React.PureComponent<
 > {
     constructor(props) {
         super(props);
-        this.state = {is_hovered: false};
+        this.state = {is_hovered: false, is_mousedown: false};
         this.on_mouse_enter = this.on_mouse_enter.bind(this);
         this.on_mouse_leave = this.on_mouse_leave.bind(this);
+        this.on_mouse_down = this.on_mouse_down.bind(this);
+        this.on_mouse_up = this.on_mouse_up.bind(this);
+        this.on_click = this.on_click.bind(this);
     }
 
     on_mouse_enter() {
@@ -34,7 +38,19 @@ export default class CharacterSelect extends React.PureComponent<
     }
 
     on_mouse_leave() {
-        this.setState({is_hovered: false});
+        this.setState({is_hovered: false, is_mousedown: false});
+    }
+
+    on_mouse_down() {
+        this.setState({is_mousedown: true});
+    }
+    on_mouse_up() {
+        this.setState({is_mousedown: false});
+    }
+
+    on_click() {
+        const p = this.props;
+        p.on_click(p.id, p.name, p.valid);
     }
 
     render() {
@@ -43,7 +59,9 @@ export default class CharacterSelect extends React.PureComponent<
             <div
                 onMouseEnter={this.on_mouse_enter}
                 onMouseLeave={this.on_mouse_leave}
-                onClick={() => p.on_click(p.id, p.name, p.valid)}
+                onMouseDown={this.on_mouse_down}
+                onMouseUp={this.on_mouse_up}
+                onClick={this.on_click}
                 className={
                     "character_select" +
                     (p.selected ? " selected" : "") +
@@ -51,12 +69,14 @@ export default class CharacterSelect extends React.PureComponent<
                 }
             >
                 <div className="character_select_container">
-                    <img src={character_url(p.id, 64)} width="64" height="64" />
+                    <img draggable={false} src={character_url(p.id, 64)} width="64" height="64" />
                 </div>
                 {this.props.valid ? (
                     <SkillProgress current_time={p.current_time} training={p.training} />
                 ) : null}
-                {this.state.is_hovered ? <CharacterHover {...p} /> : null}
+                {this.state.is_hovered && !this.state.is_mousedown ? (
+                    <CharacterHover {...p} />
+                ) : null}
             </div>
         );
     }

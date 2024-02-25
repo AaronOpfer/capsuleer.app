@@ -47,4 +47,3 @@ export class CharacterHover extends React.PureComponent<
         );
     }
 }
-

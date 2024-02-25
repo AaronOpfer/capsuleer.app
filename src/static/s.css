@@ -29,6 +29,8 @@ body, html {
 
 h1 {
     margin: 0;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 body {
@@ -42,9 +44,6 @@ header {
     text-align: center;
     text-transform: uppercase;
     overflow: auto;
-}
-
-header > div {
     display: flex;
 }
 
@@ -150,10 +149,58 @@ footer { text-align: center; }
     font-size: 0.9em;
 }
 
+.header_draganddrop_wrapper {
+    display: flex;
+}
+
+.header_draganddrop_wrapper.dragging {
+    opacity: 0.1;
+}
+
+.header_draganddrop_dropzone {
+    display: none;
+    z-index: 123;
+    width: 66px;
+    margin-right: -66px;
+    height: 78px;
+    border: 1px solid #ccd;
+}
+
+.dragging > .header_draganddrop_dropzone {
+    display: initial;
+}
+
+
+.header_draganddrop_dropzone::after {
+    content: " ";
+    margin-top: 82px;
+    display: block;
+    position: absolute;
+    width: 66px;
+    height: 160px;
+}
+
+@keyframes slideup {
+  100% {
+	background-position: 27px 0px, 34px 0px;
+  }
+  0% {
+	background-position: 27px 10px, 34px 10px;
+  }
+}
+
+.header_draganddrop_dropzone.target::after {
+	animation: slideup 0.1s ease-in 1;
+    background: linear-gradient(135deg, transparent 33%, #fff 33%, #fff 66%, transparent 66%), linear-gradient(225deg, transparent 33%, #fff 33%, #fff 66%, transparent 66%);
+    background-position: 27px 0px, 34px 0px;
+    background-repeat: no-repeat;
+    background-size: 7px 15px;
+}
+
 .character_select {
     display: inline-block;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1px solid black;
     border-top-width: 0;
     border-bottom-width: 0;
     text-transform: initial;

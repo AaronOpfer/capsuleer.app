@@ -230,6 +230,7 @@ class AuthenticatedContent extends React.Component<
             characters: null,
         };
         this.on_character_select_click = this.on_character_select_click.bind(this);
+        this.on_change_character_order = this.on_change_character_order.bind(this);
         this.on_character_delete_request = this.on_character_delete_request.bind(this);
         this.invalidate_character = this.invalidate_character.bind(this);
     }
@@ -294,6 +295,20 @@ class AuthenticatedContent extends React.Component<
         this.setState({character_id: id, character_name: name, valid});
     }
 
+    on_change_character_order(new_order: number[]) {
+        const old_characters = this.state.characters;
+        if (old_characters === null) {
+            return;
+        }
+        const characters = new_order.map((cid) => old_characters.find((c) => c.id == cid)!);
+        this.setState({characters});
+        fetch("/characters/ordering", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(new_order),
+        });
+    }
+
     invalidate_character(id: number) {
         if (this.state.characters == undefined) {
             throw Error("Can't invalidate characters, there are none");
@@ -349,6 +364,7 @@ class AuthenticatedContent extends React.Component<
                     characters={this.state.characters}
                     selected={this.state.character_id}
                     on_character_select={this.on_character_select_click}
+                    on_change_character_order={this.on_change_character_order}
                 />
                 {body}
                 <CharacterBackground character_id={this.state.character_id} />
