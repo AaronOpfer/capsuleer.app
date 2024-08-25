@@ -1,7 +1,4 @@
-import enum
-import pprint
 import asyncio
-import operator
 
 from capsuleerapp.esi import PublicESISession
 
@@ -24,8 +21,4 @@ async def amain():
     print(repr(stations))
 
 
-loop = asyncio.get_event_loop()
-try:
-    loop.run_until_complete(amain())
-finally:
-    loop.close()
+asyncio.run(amain())

@@ -30,7 +30,7 @@ async def get_isk_for_sp_options(
     for item_type_id in accel_type_ids:
         res = await esi.get_type_information(item_type_id)
         res = res.result
-        if res["published"] != True:
+        if res["published"] is not True:
             logger.info("UNPUBLISHED Type ID %d => %s", item_type_id, res["name"])
             continue
         if "Expired" in res["name"]:

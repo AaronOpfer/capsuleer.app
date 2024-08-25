@@ -489,7 +489,9 @@ class Server:
                     pass
             raise
 
-    async def _single_character_training(self, semaphore: asyncio.Semaphore, account_id: int, character_id: int) -> tuple[int, int, int, int, int]:
+    async def _single_character_training(
+        self, semaphore: asyncio.Semaphore, account_id: int, character_id: int
+    ) -> tuple[int, int, int, int, int]:
         async with semaphore:
             session = await self.db.get_session(account_id, character_id)
             queue = await self._esi.get_skill_queue(session)
@@ -542,7 +544,9 @@ class Server:
         aiohttp_session.setup(
             app,
             EncryptedCookieStorage(
-                cookie_secret_key, cookie_name="s", max_age=60 * 60 * 24 * 30  # 30 days
+                cookie_secret_key,
+                cookie_name="s",
+                max_age=60 * 60 * 24 * 30,  # 30 days
             ),
         )
         async with Database(**dbargs) as self.db, self._esi:
