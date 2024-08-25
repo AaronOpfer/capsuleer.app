@@ -2,7 +2,7 @@ import asyncio
 import datetime
 import unittest
 
-from esi.types import ESILimiter
+from capsuleerapp.types import ESILimiter
 
 TIME_1 = datetime.datetime.now(datetime.UTC)
 TIME_2 = TIME_1 + datetime.timedelta(seconds=5)

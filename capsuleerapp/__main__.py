@@ -491,22 +491,22 @@ class Server:
 
     async def _single_character_training(
         self, semaphore: asyncio.Semaphore, account_id: int, character_id: int
-    ) -> tuple[int, int, int, int, int]:
+    ) -> None | tuple[int, int, int, int, int]:
         async with semaphore:
             session = await self.db.get_session(account_id, character_id)
             queue = await self._esi.get_skill_queue(session)
             del session
         if not queue:
-            return
+            return None
         if "start_date" not in queue[0]:
-            return
+            return None
         current_time = datetime.datetime.now(datetime.UTC)
         for queue_item in queue:
             finish_date = dateparse(queue_item["finish_date"])
             if current_time < finish_date:
                 break
         else:
-            return
+            return None
 
         return (
             queue_item["skill_id"],

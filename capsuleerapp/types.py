@@ -4,7 +4,7 @@ import json
 import asyncio
 import logging
 import datetime
-from typing import NamedTuple
+from typing import NamedTuple, Awaitable
 from operator import attrgetter
 from collections import deque
 from email.utils import parsedate_to_datetime
@@ -165,7 +165,7 @@ class Response:
 
 
 class ESILimiter:
-    def __init__(self):
+    def __init__(self) -> None:
         self._limit: int = 1
         self._occupancy = 0
         self._waiters: deque[asyncio.Future] = deque()
@@ -181,16 +181,16 @@ class ESILimiter:
     if __debug__:
 
         @property
-        def _occupancy(self):
+        def _occupancy(self) -> int:
             return self.__occupancy
 
         @_occupancy.setter
-        def _occupancy(self, new_value: int):
+        def _occupancy(self, new_value: int) -> None:
             assert new_value >= 0
             assert isinstance(new_value, int)
             self.__occupancy = new_value
 
-    def __aenter__(self) -> None:
+    def __aenter__(self) -> Awaitable[None]:
         limit = self._limit
         occupancy = self._occupancy
 
@@ -211,7 +211,7 @@ class ESILimiter:
                 wait_fut.set_result(None)
                 self._occupancy += 1
 
-    def __aexit__(self, exc_type, exc, tb) -> None:
+    def __aexit__(self, exc_type, exc, tb) -> Awaitable[None]:
         self._occupancy -= 1
         self._unblock_waiters()
         return self._done_fut
