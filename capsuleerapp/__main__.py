@@ -412,10 +412,11 @@ class Server:
         return aiohttp.web.Response(status=200)
 
     async def characters_training(self, request):
+        semaphore = asyncio.Semaphore(5)
         account_id, characters, validity = await self._characters(request)
         fut_to_id = {
             asyncio.ensure_future(
-                self._single_character_training(account_id, c.id)
+                self._single_character_training(semaphore, account_id, c.id)
             ): c.id
             for valid, c in zip(validity, characters)
             if valid
@@ -488,9 +489,11 @@ class Server:
                     pass
             raise
 
-    async def _single_character_training(self, account_id, character_id):
-        session = await self.db.get_session(account_id, character_id)
-        queue = await self._esi.get_skill_queue(session)
+    async def _single_character_training(self, semaphore: asyncio.Semaphore, account_id: int, character_id: int) -> tuple[int, int, int, int, int]:
+        async with semaphore:
+            session = await self.db.get_session(account_id, character_id)
+            queue = await self._esi.get_skill_queue(session)
+            del session
         if not queue:
             return
         if "start_date" not in queue[0]:
