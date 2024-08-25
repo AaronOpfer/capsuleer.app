@@ -61,6 +61,7 @@ async def do_work(session):
         "Resource Processing",
         "Planet Management",
         "Structure Management",
+        "Sequencing",
     ]
 
     skill_ids = []
