@@ -376,7 +376,7 @@ footer { text-align: center; }
 }
 
 @media screen and (min-width: 800px) and (max-width: 1200px), screen and (min-width: 1440px) {
-    div.skill {
+    div.skill_list div.skill {
         width: 50%;
     }
 }

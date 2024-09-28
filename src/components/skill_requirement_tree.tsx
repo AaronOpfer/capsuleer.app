@@ -6,46 +6,51 @@ import {format_duration, format_with_decimals} from "../misc/formatting";
 
 interface SkillRequirementTreeProps {
     skill: StaticSkill;
+    skillComponentRenderer: (skill: StaticSkill, desiredLevel: number) => React.JSX.Element;
 }
 
-export default class SkillRequirementTree extends React.PureComponent<
+export default class SkillRequirementTree extends React.Component<
     SkillRequirementTreeProps,
     Record<string, never>
 > {
     render() {
         const props = this.props;
-        return <SkillRequirementTreeNode skill={props.skill} level={1} />;
+        return (
+            <SkillRequirementTreeNode
+                skillComponentRenderer={props.skillComponentRenderer}
+                skill={props.skill}
+                level={1}
+            />
+        );
     }
 }
 
 interface SkillRequirementTreeNodeProps {
     skill: StaticSkill;
+    skillComponentRenderer: (skill: StaticSkill, desiredLevel: number) => React.JSX.Element;
     level: number;
 }
 
-const levelText = ["I", "II", "III", "IV", "V"];
-
-class SkillRequirementTreeNode extends React.PureComponent<
+class SkillRequirementTreeNode extends React.Component<
     SkillRequirementTreeNodeProps,
     Record<string, never>
 > {
     render() {
-        const {skill, level} = this.props;
+        const {skill, level, skillComponentRenderer} = this.props;
         const children = skill.prerequisites.map((prereq) => {
             return (
                 <SkillRequirementTreeNode
                     key={prereq.skillId}
                     skill={skill_data.skill(prereq.skillId)}
                     level={prereq.skillLevel}
+                    skillComponentRenderer={skillComponentRenderer}
                 />
             );
         });
 
         return (
             <div className="skill_requirement_tree_node">
-                <div>
-                    {skill.name} {levelText[level - 1]}
-                </div>
+                {this.props.skillComponentRenderer(skill, level)}
                 <div>{children}</div>
             </div>
         );

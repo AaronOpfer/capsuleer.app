@@ -134,7 +134,6 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
                         )}
                     </p>
                 </div>
-                <SkillRequirementTree skill={skill} />
             </div>
         );
     }
@@ -210,10 +209,11 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
         this.setState({focused_skill: skill_id});
     };
 
-    render_skill(skill: StaticSkill) {
+    render_skill = (skill: StaticSkill, desired_level?: number) => {
         const char_skills = this.props.data ? this.props.data.skills : {};
         return (
             <Skill
+                desired_level={desired_level}
                 key={skill.id}
                 {...char_skills[skill.id]}
                 {...skill}
@@ -222,7 +222,7 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
                 sp_min={this.props.data ? this.props.data.sp_per_minute(skill.attribute) : 0}
             />
         );
-    }
+    };
 
     on_focus_close() {
         this.setState({focused_skill: null});
@@ -231,7 +231,16 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
     render() {
         if (this.state.focused_skill !== null) {
             return (
-                <FocusedSkill skill_id={this.state.focused_skill} onClose={this.on_focus_close} />
+                <React.Fragment>
+                    <FocusedSkill
+                        skill_id={this.state.focused_skill}
+                        onClose={this.on_focus_close}
+                    />
+                    <SkillRequirementTree
+                        skill={skill_data.skill(this.state.focused_skill)}
+                        skillComponentRenderer={this.render_skill}
+                    />
+                </React.Fragment>
             );
         }
         if (!this.props.skills) {

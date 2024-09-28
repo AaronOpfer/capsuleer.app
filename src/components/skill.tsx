@@ -46,6 +46,7 @@ interface SkillProps {
     attribute: number;
     level: number | undefined;
     sp: number | undefined;
+    desired_level: number | undefined;
 }
 
 export default class Skill extends React.PureComponent<SkillProps, Record<string, never>> {
@@ -63,16 +64,16 @@ export default class Skill extends React.PureComponent<SkillProps, Record<string
             next_level = Math.max(props.level, props.training_level) + 1;
         }
 
-        let skill_time: React.ReactElement | null = null;
-        if (props.sp_min && next_level < 6) {
-            const last_level_sp = sp_required(next_level - 1, props.rank);
-            const sp_to_train =
-                sp_required(next_level, props.rank) -
-                Math.max(0, (props.sp || 0) - last_level_sp) -
-                last_level_sp;
-            const duration = (sp_to_train / props.sp_min) * 60;
+        const desired_level = props.desired_level ? props.desired_level : next_level;
 
-            skill_time = <span className="skill_time">{format_duration(duration, false)}</span>;
+        let skill_time: React.ReactElement | null = null;
+        if (props.sp_min && desired_level < 6) {
+            const sp_needed_to_reach_desired =
+                sp_required(desired_level, props.rank) - (props.sp || 0);
+            if (sp_needed_to_reach_desired > 0) {
+                const duration = (sp_needed_to_reach_desired / props.sp_min) * 60;
+                skill_time = <span className="skill_time">{format_duration(duration, false)}</span>;
+            }
         }
 
         return (
@@ -82,7 +83,12 @@ export default class Skill extends React.PureComponent<SkillProps, Record<string
             >
                 <span className="skill_lhand_details">
                     <span className={class_name}></span>
-                    <h5>{props.name}</h5>
+                    <h5>
+                        {props.name}{" "}
+                        {props.desired_level
+                            ? [" I", " II", " III", " IV", " V"][props.desired_level - 1]
+                            : null}
+                    </h5>
                     {skill_time}
                 </span>
                 <span className="skill_attribute">{attribute_doms[props.attribute]}</span>
