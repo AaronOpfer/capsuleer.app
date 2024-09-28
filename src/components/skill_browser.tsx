@@ -122,38 +122,40 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
                 </div>
                 <div className="focused_skill_flexbox">
                     <table className="focused_skill_details">
-                        <tr>
-                            <th>Rank:</th>
-                            <td>{skill.rank}x</td>
-                        </tr>
-                        <tr>
-                            <th>Primary Attr:</th>
-                            <td className="attribute_primary">{attribs[0]}</td>
-                        </tr>
-                        <tr>
-                            <th>Secondary Attr:</th>
-                            <td className="attribute_secondary">{attribs[1]}</td>
-                        </tr>
-                        <tr>
-                            <th>Level 1:</th>
-                            <td>{format_with_decimals(sp_required(1, skill.rank), 0)} SP</td>
-                        </tr>
-                        <tr>
-                            <th>Level 2:</th>
-                            <td>{format_with_decimals(sp_required(2, skill.rank), 0)} SP</td>
-                        </tr>
-                        <tr>
-                            <th>Level 3:</th>
-                            <td>{format_with_decimals(sp_required(3, skill.rank), 0)} SP</td>
-                        </tr>
-                        <tr>
-                            <th>Level 4:</th>
-                            <td>{format_with_decimals(sp_required(4, skill.rank), 0)} SP</td>
-                        </tr>
-                        <tr>
-                            <th>Level 5:</th>
-                            <td>{format_with_decimals(sp_required(5, skill.rank), 0)} SP</td>
-                        </tr>
+                        <tbody>
+                            <tr>
+                                <th>Rank:</th>
+                                <td>{skill.rank}x</td>
+                            </tr>
+                            <tr>
+                                <th>Primary Attr:</th>
+                                <td className="attribute_primary">{attribs[0]}</td>
+                            </tr>
+                            <tr>
+                                <th>Secondary Attr:</th>
+                                <td className="attribute_secondary">{attribs[1]}</td>
+                            </tr>
+                            <tr>
+                                <th>Level 1:</th>
+                                <td>{format_with_decimals(sp_required(1, skill.rank), 0)} SP</td>
+                            </tr>
+                            <tr>
+                                <th>Level 2:</th>
+                                <td>{format_with_decimals(sp_required(2, skill.rank), 0)} SP</td>
+                            </tr>
+                            <tr>
+                                <th>Level 3:</th>
+                                <td>{format_with_decimals(sp_required(3, skill.rank), 0)} SP</td>
+                            </tr>
+                            <tr>
+                                <th>Level 4:</th>
+                                <td>{format_with_decimals(sp_required(4, skill.rank), 0)} SP</td>
+                            </tr>
+                            <tr>
+                                <th>Level 5:</th>
+                                <td>{format_with_decimals(sp_required(5, skill.rank), 0)} SP</td>
+                            </tr>
+                        </tbody>
                     </table>
                     <p className="focused_skill_description">
                         {this.state.description === null ? (
