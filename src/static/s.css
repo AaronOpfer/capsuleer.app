@@ -498,25 +498,20 @@ footer { text-align: center; }
 
 .focused_skill_details {
     font-size: 0.8em;
+    margin: 1em;
+    min-width: 240px;
+    flex-grow: 1;
+    height: min-content;
 }
 
-.focused_skill_details > .rank::before {
-    content: "Rank: x";
+@media only screen and (min-width: 800px) {
+    .focused_skill_flexbox {
+        display: flex;
+    }
 }
-.focused_skill_details > .sp::after {
-    content: " SP"
-}
-.focused_skill_details > .attribute_primary::before {
-    content: "Primary Attribute: ";
-}
-.focused_skill_details > .attribute_secondary::before {
-    content: "Secondary Attribute: ";
-}
-.focused_skill_details > .attribute_primary, .focused_skill_details > .attribute_secondary {
+
+.focused_skill_details .attribute_primary, .focused_skill_details .attribute_secondary {
     text-transform: capitalize;
-}
-.focused_skill_details > span {
-    margin: 4px;
 }
 
 .focused_skill_header {
@@ -533,6 +528,12 @@ footer { text-align: center; }
 }
 .focused_skill_description {
     white-space: pre-wrap;
+    flex-grow: 4;
+}
+
+.focused_skill_details td, .focused_skill_details th {
+    text-align: right;
+
 }
 
 .skill_attribute {
