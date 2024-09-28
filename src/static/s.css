@@ -628,12 +628,17 @@ footer { text-align: center; }
 }
 
 
-.skill_queue_duration_bar {
+.skill_queue_duration_bar, .skill_queue_duration_bar_injectable {
     position: relative;
     height: 1px;
     bottom: 2px;
     background: var(--skillq-t);
 }
+
+.skill_queue_duration_bar_injectable {
+    background: white;
+}
+
 
 .skill_queue_empty {
     text-align: center;

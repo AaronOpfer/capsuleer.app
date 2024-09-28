@@ -57,19 +57,29 @@ export default class SkillQueue extends React.Component<SkillQueueProps, Record<
             queue_total_duration = (+queue_ends - queue_begins) / 1000;
         }
 
+        // used to calculate how much of a "white" unallocated SP bar we will render.
+        let sp_left_to_allocate = data.unallocated_sp;
+
         let offset = 0;
         let sp_costs = 0;
         const skill_doms = data.skill_queue.map((queue_item, queue_item_index) => {
             const skill = skill_data.skill(queue_item.id);
             const previous_level_sp = sp_required(queue_item.level - 1, skill.rank);
             const char_skill_sp = data.skills[queue_item.id].sp;
-
-            sp_costs +=
+            const sp_required_to_train =
                 sp_required(queue_item.level, skill.rank) -
                 Math.max(previous_level_sp, char_skill_sp);
+            sp_costs += sp_required_to_train;
             const trained_level = data.skill_level(queue_item.id);
+
+            const injectable_sp = Math.min(sp_left_to_allocate, sp_required_to_train);
+            sp_left_to_allocate -= injectable_sp;
+
+            const injectable_ratio = injectable_sp / sp_required_to_train;
+
             const duration = queue_item.duration;
             const duration_as_percentage = (100 * duration) / queue_total_duration;
+            const injectable_duration_as_percentage = duration_as_percentage * injectable_ratio;
             const current_offset = offset;
             offset += duration_as_percentage;
 
@@ -83,12 +93,10 @@ export default class SkillQueue extends React.Component<SkillQueueProps, Record<
                         duration={duration}
                         index={queue_item_index}
                     />
-                    <div
-                        className="skill_queue_duration_bar"
-                        style={{
-                            left: `${current_offset}%`,
-                            width: `${duration_as_percentage}%`,
-                        }}
+                    <SkillQueueDurationBar
+                        left={current_offset}
+                        injectable_width={injectable_duration_as_percentage}
+                        overall_width={duration_as_percentage}
                     />
                 </React.Fragment>
             );
@@ -140,6 +148,60 @@ export default class SkillQueue extends React.Component<SkillQueueProps, Record<
                 <div className="skill_queue_contents cat_dbl">{skill_doms}</div>
             </div>
         );
+    }
+}
+
+interface SkillQueueDurationBarProps {
+    left: number;
+    injectable_width: number;
+    overall_width: number;
+}
+
+class SkillQueueDurationBar extends React.PureComponent<
+    SkillQueueDurationBarProps,
+    Record<string, never>
+> {
+    render() {
+        const props = this.props;
+
+        if (props.injectable_width == 0) {
+            return (
+                <div
+                    className="skill_queue_duration_bar"
+                    style={{
+                        left: `${props.left}%`,
+                        width: `${props.overall_width}%`,
+                    }}
+                />
+            );
+        } else if (props.injectable_width == props.overall_width) {
+            return (
+                <div
+                    className="skill_queue_duration_bar_injectable"
+                    style={{
+                        left: `${props.left}%`,
+                        width: `${props.overall_width}%`,
+                    }}
+                />
+            );
+        } else {
+            return (
+                <div style={{position: "relative", left: `${props.left}%`, height: 1}}>
+                    <div
+                        className="skill_queue_duration_bar_injectable"
+                        style={{width: `${props.injectable_width}%`}}
+                    />
+                    <div
+                        className="skill_queue_duration_bar"
+                        style={{
+                            position: "absolute",
+                            left: `${props.injectable_width}%`,
+                            width: `${props.overall_width - props.injectable_width}%`,
+                        }}
+                    />
+                </div>
+            );
+        }
     }
 }
 
