@@ -504,6 +504,14 @@ footer { text-align: center; }
     height: min-content;
 }
 
+.skill_requirement_tree {
+    font-size: 0.8em;
+}
+
+.skill_requirement_tree_node {
+    margin-left: 1em;
+}
+
 @media only screen and (min-width: 800px) {
     .focused_skill_flexbox {
         display: flex;

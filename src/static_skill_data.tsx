@@ -1,11 +1,17 @@
 import skill_data_raw from "./skills.json";
 
+export interface StaticSkillPrerequisite {
+    readonly skillId: number,
+    readonly skillLevel: number,
+}
+
 export interface StaticSkill {
     readonly id: number,
     readonly category_id: number,
     readonly name: string,
     readonly rank: number,
-    readonly attribute: number
+    readonly attribute: number,
+    readonly prerequisites: StaticSkillPrerequisite[],
 }
 
 export interface StaticSkillCategory {
@@ -27,7 +33,8 @@ export class StaticSkillData {
                 category_id: skill[1],
                 name: skill[2],
                 rank: skill[3],
-                attribute: skill[4]
+                attribute: skill[4],
+                prerequisites: skill[5].map(raw => ({skillId: raw[0], skillLevel: raw[1]})),
             });
             (category_to_skills[skill[1]] = category_to_skills[skill[1]] || []).push(staticskill);
         }

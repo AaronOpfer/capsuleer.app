@@ -3,6 +3,7 @@ import CharacterSkills from "../character_skills";
 import {StaticSkill, skill_data} from "../static_skill_data";
 import {attribute_types, sp_required} from "../misc/sp";
 import {format_duration, format_with_decimals} from "../misc/formatting";
+import SkillRequirementTree from "./skill_requirement_tree";
 
 enum SkillsToDisplay {
     all_skills = 0,
@@ -165,6 +166,7 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
                         )}
                     </p>
                 </div>
+                <SkillRequirementTree skill={skill} />
             </div>
         );
     }

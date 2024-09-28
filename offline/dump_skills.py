@@ -11,6 +11,10 @@ from collections import deque
 from capsuleerapp.esi import PublicESISession
 
 
+DOGMA_REQUIRED_SKILL_IDS = (182, 183, 184, 1285, 1289, 1290)
+DOGMA_REQUIRED_SKILL_LEVELS = (277, 278, 279, 1286, 1287, 1288)
+
+
 async def amain():
     parser = argparse.ArgumentParser(
         description="Dumps skill data from ESI for the front-end build to use later."
@@ -110,6 +114,17 @@ async def do_work(session):
                 attribs = {
                     a["attribute_id"]: a["value"] for a in data["dogma_attributes"]
                 }
+
+                prerequisites = []
+                for dogma_id_skill_id, dogma_id_skill_level in zip(
+                    DOGMA_REQUIRED_SKILL_IDS, DOGMA_REQUIRED_SKILL_LEVELS
+                ):
+                    try:
+                        prerequisites.append(
+                            (attribs[dogma_id_skill_id], attribs[dogma_id_skill_level])
+                        )
+                    except KeyError:
+                        pass
                 skills.append(
                     (
                         skill_id,
@@ -117,6 +132,7 @@ async def do_work(session):
                         data["name"],
                         int(attribs[275]),
                         attrs[int(attribs[180]), int(attribs[181])],
+                        prerequisites,
                     )
                 )
 
