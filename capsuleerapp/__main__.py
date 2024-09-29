@@ -414,88 +414,81 @@ class Server:
     async def characters_training(self, request):
         semaphore = asyncio.Semaphore(5)
         account_id, characters, validity = await self._characters(request)
-        fut_to_id = {
-            asyncio.ensure_future(
-                self._single_character_training(semaphore, account_id, c.id)
-            ): c.id
-            for valid, c in zip(validity, characters)
-            if valid
-        }
-        expected_count = len(fut_to_id)
-        completed_count = 0
-        transmitted_count = 0
-        results_to_transmit = []
-        all_done_future = asyncio.Future()
+        character_ids = [c.id for valid, c in zip(validity, characters) if valid]
 
-        def _on_complete(future):
-            character_id = fut_to_id.pop(future)
+        async def get_character_training(character_id):
             try:
-                result = future.result()
+                async with semaphore:
+                    result = await self._single_character_training(
+                        account_id, character_id
+                    )
             except CharacterNeedsUpdated:  # soften this for reporting purposes
                 logger.info("character %d needs refresh token updated", character_id)
                 result = None
             except asyncio.CancelledError:  # soften this for reporting purposes
                 result = None
-            except Exception:
+            except BaseException:
                 logger.exception("error downloading %d skill queue", character_id)
                 result = None
             results_to_transmit.append((character_id, result))
-
             nonlocal completed_count
             completed_count += 1
             if completed_count == expected_count:
                 all_done_future.set_result(None)
 
-        for fut in fut_to_id.keys():
-            fut.add_done_callback(_on_complete)
-
-        response = aiohttp.web.StreamResponse(
-            status=200, headers={"Content-Type": "text/plain"}
-        )
-
-        await response.prepare(request)
-
-        try:
-            while transmitted_count != expected_count:
-                await asyncio.wait(
-                    (asyncio.create_task(asyncio.sleep(0.2)), all_done_future),
-                    return_when=asyncio.FIRST_COMPLETED,
+        async with asyncio.TaskGroup() as tg:
+            expected_count = len(character_ids)
+            for character_id in character_ids:
+                tg.create_task(
+                    get_character_training(character_id),
+                    name=f"training-{character_id}",
                 )
-                going_to_transmit_count = len(results_to_transmit)
-                if going_to_transmit_count:
-                    response_segment = b""
-                    for character_id, result in results_to_transmit:
-                        response_segment += self._character_training_result(
-                            character_id, result
-                        )
-                    results_to_transmit = []
-                    await response.write(response_segment)
-                    transmitted_count += going_to_transmit_count
-                    logger.debug(
-                        "transmitted %d/%d characters",
-                        transmitted_count,
-                        expected_count,
-                    )
+            completed_count = 0
+            transmitted_count = 0
+            results_to_transmit = []
+            all_done_future = asyncio.Future()
 
-            await response.write_eof()
-            return response
-        except asyncio.CancelledError:
-            for fut in fut_to_id.keys():
-                fut.cancel()
-            for fut in fut_to_id.keys():
-                try:
-                    await fut
-                except asyncio.CancelledError:
-                    pass
-            raise
+            response = aiohttp.web.StreamResponse(
+                status=200, headers={"Content-Type": "text/plain"}
+            )
+
+            await response.prepare(request)
+
+            try:
+                while transmitted_count != expected_count:
+                    await asyncio.wait(
+                        (asyncio.create_task(asyncio.sleep(0.2)), all_done_future),
+                        return_when=asyncio.FIRST_COMPLETED,
+                    )
+                    going_to_transmit_count = len(results_to_transmit)
+                    if going_to_transmit_count:
+                        response_segment = b""
+                        for character_id, result in results_to_transmit:
+                            response_segment += self._character_training_result(
+                                character_id, result
+                            )
+                        results_to_transmit = []
+                        await response.write(response_segment)
+                        transmitted_count += going_to_transmit_count
+                        logger.debug(
+                            "transmitted %d/%d characters",
+                            transmitted_count,
+                            expected_count,
+                        )
+
+                await response.write_eof()
+                return response
+            except aiohttp.client_exception.ClientConnectionResetError:
+                logger.debug(
+                    "client disconnected before all training requests completed"
+                )
 
     async def _single_character_training(
-        self, semaphore: asyncio.Semaphore, account_id: int, character_id: int
+        self, account_id: int, character_id: int
     ) -> None | tuple[int, int, int, int, int]:
-        async with semaphore:
-            session = await self.db.get_session(account_id, character_id)
-            queue = await self._esi.get_skill_queue(session)
-            del session
+        session = await self.db.get_session(account_id, character_id)
+        queue = await self._esi.get_skill_queue(session)
+        del session
         if not queue:
             return None
         if "start_date" not in queue[0]:

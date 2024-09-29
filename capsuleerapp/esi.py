@@ -40,7 +40,7 @@ def _make_header_from_token(token: AccessToken) -> dict[str, str]:
         "User-Agent": "capsuleer.app me@aaronopfer.com",
         "Host": "esi.evetech.net",
         "Accept": "application/json",
-        "Authorization": "Bearer %s" % token.access_token,
+        "Authorization": f"Bearer {token.access_token}",
     }
 
 
