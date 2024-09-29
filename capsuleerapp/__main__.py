@@ -478,7 +478,7 @@ class Server:
 
                 await response.write_eof()
                 return response
-            except aiohttp.client_exception.ClientConnectionResetError:
+            except aiohttp.client_exceptions.ClientConnectionResetError:
                 logger.debug(
                     "client disconnected before all training requests completed"
                 )
