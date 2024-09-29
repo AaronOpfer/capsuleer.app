@@ -645,6 +645,7 @@ footer { text-align: center; }
     height: 1px;
     bottom: 2px;
     background: var(--skillq-t);
+    margin-bottom: -1px;
 }
 
 .skill_queue_duration_bar_injectable {

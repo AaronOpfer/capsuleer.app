@@ -186,20 +186,21 @@ class SkillQueueDurationBar extends React.PureComponent<
             );
         } else {
             return (
-                <div style={{position: "relative", left: `${props.left}%`, height: 1}}>
+                <React.Fragment>
                     <div
                         className="skill_queue_duration_bar_injectable"
-                        style={{width: `${props.injectable_width}%`}}
+                        style={{
+                            left: `${props.left}%`,
+                            width: `${props.injectable_width}%`}}
                     />
                     <div
                         className="skill_queue_duration_bar"
                         style={{
-                            position: "absolute",
-                            left: `${props.injectable_width}%`,
+                            left: `${props.injectable_width + props.left}%`,
                             width: `${props.overall_width - props.injectable_width}%`,
                         }}
                     />
-                </div>
+                </React.Fragment>
             );
         }
     }
