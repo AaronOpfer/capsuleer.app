@@ -7,3 +7,6 @@ __pycache__
 .idea
 .venv
 *.swp
+# pixi environments
+.pixi
+*.egg-info

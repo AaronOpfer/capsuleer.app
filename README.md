@@ -23,24 +23,30 @@ Everything that ends with `.example` is a configuration that you will need to co
 
 [You will need to create an application with EVE](https://developers.eveonline.com/applications) and get the `client_id` and `client_secret`, and install them into `esi.conf`. You'll need to specify a callback URL with CCP; It should be `<http or https>://<whatever your canonical hostname is>/callback`.
 
-## Python
+## Runtimes
 
-Python 3.11 is required to run the main webserver and several "offline" scripts. It's likely newer versions than Python 3.11 will work too. The easiest way to get Python 3.11 on an arbitrary system is likely to use miniconda. To create the venv, run `./recreate-venv.sh`.
+To install both the backend server requirements and the `node`/`npm` used for the front-end build, we use [`pixi`](https://github.com/prefix-dev/pixi).
 
-## JavaScript
+### Python
 
-Node 18.12.1 is required. It's likely newer versions will work too. The easiest way to get the right version of node is likely to install `nvm`. Then, a production build can of the front-end can be made with `npx webpack --config webpack.prod.js`.
+Python 3.12 is required to run the main webserver and several "offline" scripts. It's likely newer versions than Python 3.12 will work too. The runtime environment for the webserver can be installed simply with `pixi install`.
+
+### JavaScript
+
+Node 20.17.0 is required. It's likely newer versions will work too (20.17.0 was LTS at time of writing). The correct version of `node` is installed when using `pixi` as described above. A production build can of the front-end can be made with `npx webpack --config webpack.prod.js`. Production builds include source maps (this is an open-source project after all).
 
 ## Postgres
 
-Postgres 13 is what is currently being used to develop this application. It seems likely that a wide variety of versions will work, as our usage of postgres is generally not sophisticated. A schema dump can be found in `schema.sql`.
+Postgres 15 is what is currently being used to run this application. It seems likely that a wide variety of versions will work, as our usage of postgres is generally not sophisticated. A schema dump can be found in `schema.sql`.
 
-## `offline/` directory
+For now, sourcing a postgres database is up to the deployment. On the real deployed site, we use the Postgres available in Debian repositories.
 
-The offline directory contains scripts for generating static data used by various parts of the app.
+## `capsuleerapp.offline` modules
 
- * `implant_search.py` creates the static data necessary to determine which implant IDs correspond to which attribute bonus.
- * `all_forge_npc.py` determines all station IDs for NPC stations in The Forge, necessary for the market price estimator feature to differentiate citadels and stations.
+The offline module contains scripts for generating static data used by various parts of the app.
+
+ * `implant_search.py` creates the static data necessary to determine which implant IDs correspond to which attribute bonus. When new implants are added, this script needs to be rerun.
+ * `all_forge_npc.py` determines all station IDs for NPC stations in The Forge, necessary for the market price estimator feature to differentiate citadels and stations. New NPC stations are not very common; the last one was for Paragon/NPE.
  * `dump_skills.py` creates a static JSON file used by the JavaScript build so that the local client has complete knowledge of the skills available in EVE Online. *This means that the front-end needs to be rebuilt every time CCP adds more skills to the game.*
 
 ## Setting up the NPC Corporation Character Token
@@ -55,9 +61,9 @@ If you log into this account and again in the future, the `esi-markets.structure
 
 #### supervisor
 
-I'm using supervisor to start and run all daemons, except for nginx, which comes from the Debian system.
+I'm using supervisor to start and run all daemons, except for nginx and postgres, which comes from the Debian system.
 
-#### `esi` app server
+#### `capsuleerapp` app server
 
 This is the python server used to render the webapp for users.
 
