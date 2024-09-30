@@ -38,7 +38,7 @@ export function sp_required(level: number, rank: number): number {
 export function calculate_number_of_injectors(
     sp: number,
     unallocated_sp: number,
-    desired: number
+    desired: number,
 ): number {
     desired -= unallocated_sp;
     if (desired <= 0) {

@@ -191,7 +191,8 @@ class SkillQueueDurationBar extends React.PureComponent<
                         className="skill_queue_duration_bar_injectable"
                         style={{
                             left: `${props.left}%`,
-                            width: `${props.injectable_width}%`}}
+                            width: `${props.injectable_width}%`,
+                        }}
                     />
                     <div
                         className="skill_queue_duration_bar"

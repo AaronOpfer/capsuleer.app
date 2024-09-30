@@ -115,10 +115,13 @@ export default class ISKForSPPanel extends React.PureComponent<
     }
 
     pricingCycle() {
-        this._timeoutHandle = setTimeoutWithVisibility(async () => {
-            await this.refreshPricingData();
-            this.pricingCycle();
-        }, 1000 * 60 * 30);
+        this._timeoutHandle = setTimeoutWithVisibility(
+            async () => {
+                await this.refreshPricingData();
+                this.pricingCycle();
+            },
+            1000 * 60 * 30,
+        );
     }
 
     async componentWillUnmount() {
@@ -249,7 +252,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                             onChange={this.on_fake_implant}
                             checked={state.fake_implant}
                         />
-                    </label>
+                    </label>,
                 );
             }
 
@@ -265,7 +268,7 @@ export default class ISKForSPPanel extends React.PureComponent<
                             onChange={this.on_fake_bio5}
                             checked={state.fake_biology_5}
                         />
-                    </label>
+                    </label>,
                 );
             }
         }

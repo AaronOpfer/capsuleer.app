@@ -122,9 +122,12 @@ class Body extends React.Component<BodyProps, BodyState> {
                     char_skills.update();
                     this.forceUpdate();
                 }, 1000);
-                this.refresh_timeout = setTimeoutWithVisibility(() => {
-                    this.load_character_data();
-                }, 1000 * 5 * 60);
+                this.refresh_timeout = setTimeoutWithVisibility(
+                    () => {
+                        this.load_character_data();
+                    },
+                    1000 * 5 * 60,
+                );
             }
         } catch (err) {
             if (err instanceof CharacterNeedsUpdated) {
@@ -254,7 +257,7 @@ class AuthenticatedContent extends React.Component<
         }
         if (
             window.confirm(
-                `Are you sure you want to remove ${character_name} from capsuleer.app?`
+                `Are you sure you want to remove ${character_name} from capsuleer.app?`,
             ) === false
         ) {
             return;
@@ -412,7 +415,7 @@ function render() {
         <React.StrictMode>
             <Application />
         </React.StrictMode>,
-        document.querySelector("#app")
+        document.querySelector("#app"),
     );
 }
 

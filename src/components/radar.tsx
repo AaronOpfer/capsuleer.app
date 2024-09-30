@@ -111,7 +111,7 @@ export class Radar extends React.PureComponent<RadarProps> {
                 props.perception,
                 props.willpower,
                 props.charisma,
-            ].map(attribute_ratio)
+            ].map(attribute_ratio),
         );
         return (
             <RadarOutline>

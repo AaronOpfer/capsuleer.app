@@ -170,13 +170,13 @@ export default class CharacterSkills {
                     color = color_band(
                         [77, 77, 77],
                         [77, 255, 77],
-                        (value - lowest_possible) / (highest_possible - lowest_possible)
+                        (value - lowest_possible) / (highest_possible - lowest_possible),
                     );
                 } else {
                     color = color_band(
                         [33, 200, 33],
                         [66, 66, 200],
-                        (value - highest_possible) / (highest_accel_possible - highest_possible)
+                        (value - highest_possible) / (highest_accel_possible - highest_possible),
                     );
                 }
                 return `.${attr} { background-color: ${color}; }`;
