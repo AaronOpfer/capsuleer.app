@@ -21,7 +21,7 @@
 }
 
 html {
-    background: #22222f url('bigsplash.webp') no-repeat right 100%/cover fixed;
+    background: #22222f url('bigsplash.webp') no-repeat 50% 50%/cover fixed;
 }
 
 body, html {
