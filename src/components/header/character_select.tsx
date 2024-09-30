@@ -15,32 +15,46 @@ export interface CharacterSelectProps {
 }
 
 interface CharacterSelectState {
-    is_hovered: boolean;
+    hover_position: number | null; // negative means pin to the right
 }
 
 export default class CharacterSelect extends React.PureComponent<
     CharacterSelectProps,
     CharacterSelectState
 > {
+    ref: React.RefObject<HTMLDivElement>;
+
     constructor(props) {
         super(props);
-        this.state = {is_hovered: false};
-        this.on_mouse_enter = this.on_mouse_enter.bind(this);
-        this.on_mouse_leave = this.on_mouse_leave.bind(this);
+        this.state = {hover_position: null};
+        this.ref = React.createRef();
     }
 
-    on_mouse_enter() {
-        this.setState({is_hovered: true});
-    }
+    on_mouse_enter = () => {
+        const domElement = this.ref?.current;
+        if (domElement === null) {
+            return;
+        }
+        const dom_rect = domElement.getBoundingClientRect();
+        const left_pos = Math.max(0, dom_rect.left);
+        const screen_width = document.documentElement.clientWidth;
+        const screen_middle = screen_width / 2;
+        if (left_pos > screen_middle) {
+            this.setState({hover_position: -(screen_width - dom_rect.right)});
+        } else {
+            this.setState({hover_position: left_pos});
+        }
+    };
 
-    on_mouse_leave() {
-        this.setState({is_hovered: false});
-    }
+    on_mouse_leave = () => {
+        this.setState({hover_position: null});
+    };
 
     render() {
         const p = this.props;
         return (
             <div
+                ref={this.ref}
                 onMouseEnter={this.on_mouse_enter}
                 onMouseLeave={this.on_mouse_leave}
                 onClick={() => p.on_click(p.id, p.name, p.valid)}
@@ -56,7 +70,9 @@ export default class CharacterSelect extends React.PureComponent<
                 {this.props.valid ? (
                     <SkillProgress current_time={p.current_time} training={p.training} />
                 ) : null}
-                {this.state.is_hovered ? <CharacterHover {...p} /> : null}
+                {this.state.hover_position !== null ? (
+                    <CharacterHover hover_position={this.state.hover_position} {...p} />
+                ) : null}
             </div>
         );
     }

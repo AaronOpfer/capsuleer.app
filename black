@@ -1,4 +1,2 @@
 cd $(dirname $0)
-isort $(git ls-files | grep py$)
-black $(git ls-files | grep py$)
 npx prettier --write --print-width 100 --tab-width 4 --no-bracket-spacing $(git ls-files src | grep -v static | egrep "\.ts(x)?$")
