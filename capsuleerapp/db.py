@@ -115,23 +115,21 @@ class Database:
     async def connect(self) -> None:
         self._pool = await asyncpg.create_pool(**self._connargs)
 
-    @staticmethod
     def _clear(
-        timerhandles: dict[tuple[int, int], asyncio.TimerHandle],
-        cache: dict[tuple[int, int], DatabaseSession],
+        self,
         key: tuple[int, int],
     ) -> None:
         logger.debug("cleaning inactive session: account=%d character=%d", *key)
-        del timerhandles[key]
-        del cache[key]
+        del self._timerhandles[key]
+        del self._cache[key]
 
     def _reset_expiry(self, key: tuple[int, int]) -> None:
         try:
-            self._timerhandles[key].cancel()
+            self._timerhandles.pop(key).cancel()
         except KeyError:
             pass
         self._timerhandles[key] = self._loop.call_later(
-            self.SESSION_CACHE_TIME, self._clear, self._timerhandles, self._cache, key
+            self.SESSION_CACHE_TIME, self._clear, key
         )
 
     async def get_session(self, account_id: int, character_id: int) -> DatabaseSession:
