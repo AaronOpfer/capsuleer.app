@@ -436,25 +436,25 @@ class Server:
             if completed_count == expected_count:
                 all_done_future.set_result(None)
 
-        async with asyncio.TaskGroup() as tg:
-            expected_count = len(character_ids)
-            for character_id in character_ids:
-                tg.create_task(
-                    get_character_training(character_id),
-                    name=f"training-{character_id}",
-                )
-            completed_count = 0
-            transmitted_count = 0
-            results_to_transmit = []
-            all_done_future = asyncio.Future()
+        response = aiohttp.web.StreamResponse(
+            status=200, headers={"Content-Type": "text/plain"}
+        )
 
-            response = aiohttp.web.StreamResponse(
-                status=200, headers={"Content-Type": "text/plain"}
-            )
+        await response.prepare(request)
 
-            await response.prepare(request)
+        try:
+            async with asyncio.TaskGroup() as tg:
+                expected_count = len(character_ids)
+                for character_id in character_ids:
+                    tg.create_task(
+                        get_character_training(character_id),
+                        name=f"training-{character_id}",
+                    )
+                completed_count = 0
+                transmitted_count = 0
+                results_to_transmit = []
+                all_done_future = asyncio.Future()
 
-            try:
                 while transmitted_count != expected_count:
                     await asyncio.wait(
                         (asyncio.create_task(asyncio.sleep(0.2)), all_done_future),
@@ -477,11 +477,9 @@ class Server:
                         )
 
                 await response.write_eof()
-                return response
-            except aiohttp.client_exceptions.ClientConnectionResetError:
-                logger.debug(
-                    "client disconnected before all training requests completed"
-                )
+        except* aiohttp.client_exceptions.ClientConnectionResetError:
+            logger.debug("client disconnected before all training requests completed")
+        return response
 
     async def _single_character_training(
         self, account_id: int, character_id: int
