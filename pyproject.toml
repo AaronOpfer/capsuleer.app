@@ -25,7 +25,7 @@ capsuleerapp = { path = ".", editable = true }
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
-python = "3.12.*"
+python = "3.13.*"
 aiohttp = ">=3.10.8"
 asyncpg = ">=0.29.0,<0.30"
 cryptography = ">=43.0.1,<44"
@@ -33,3 +33,4 @@ sentry-sdk = ">=2.14.0,<3"
 nodejs = "20.17.0.*"
 ruff = ">=0.6.8,<0.7"
 pre-commit = ">=3.8.0,<4"
+pytest = ">=8.3.3,<9"
