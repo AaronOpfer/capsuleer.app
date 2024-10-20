@@ -1,4 +1,5 @@
 import asyncio
+import aiohttp
 import datetime
 import unittest
 
@@ -60,3 +61,19 @@ class TestESILimiter(unittest.IsolatedAsyncioTestCase):
         # because it happened before the previous (TIME_1 < TIME_2)
         limiter.set_remaining(TIME_1, 0, 1000)
         self.assertEqual(await request(1), 1)
+
+    async def test_5xx_counts_as_error(self):
+        limiter = ESILimiter()
+
+        assert limiter._limit == 1
+
+        class FakeClientResponseError(aiohttp.ClientResponseError):
+            __init__ = Exception.__init__
+
+        with self.assertRaises(aiohttp.ClientResponseError):
+            async with limiter:
+                exc = FakeClientResponseError("oh no!")
+                exc.status = 503
+                raise exc
+
+        assert limiter._limit == 0

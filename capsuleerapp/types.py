@@ -1,6 +1,8 @@
 import abc
 import enum
 import json
+import aiohttp
+from types import TracebackType
 import asyncio
 import logging
 import datetime
@@ -212,7 +214,24 @@ class ESILimiter:
                 wait_fut.set_result(None)
                 self._occupancy += 1
 
-    def __aexit__(self, exc_type, exc, tb) -> Awaitable[None]:
+    def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> Awaitable[None]:
+        if (
+            exc is not None
+            and isinstance(exc, aiohttp.ClientResponseError)
+            and exc.status >= 500
+        ):
+            previous_limit = self._limit
+            self._limit = previous_limit - 1
+            logger.info(
+                "ESI ERROR LIMIT: %d -> %d (from 5xx error)",
+                previous_limit,
+                self._limit,
+            )
         self._occupancy -= 1
         self._unblock_waiters()
         return self._done_fut
@@ -232,7 +251,7 @@ class ESILimiter:
         if previous_limit == new_limit:
             return
         logger.info(
-            "ESI ERROR LIMIT: %d -> %d",
+            "ESI ERROR LIMIT: %d -> %d (from upstream)",
             previous_limit,
             new_limit,
         )
