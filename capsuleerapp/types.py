@@ -232,6 +232,8 @@ class ESILimiter:
                 previous_limit,
                 self._limit,
             )
+            if self._reset_timer is None:
+                self._reset_timer = self._loop.call_later(30.0, self._on_timeout)
         self._occupancy -= 1
         self._unblock_waiters()
         return self._done_fut
@@ -266,6 +268,7 @@ class ESILimiter:
             self._reset_timer = self._loop.call_later(timeout, self._on_timeout)
 
     def _on_timeout(self):
+        self._reset_timer = None
         if self._limit < 1:
             self._limit = 1
             logger.info("ESI ERROR LIMIT: reset timeout reached, increasing limit to 1")
