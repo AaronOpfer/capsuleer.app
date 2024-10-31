@@ -479,6 +479,8 @@ class Server:
                 await response.write_eof()
         except* aiohttp.client_exceptions.ClientConnectionResetError:
             logger.debug("client disconnected before all training requests completed")
+        except* ConnectionResetError:
+            logger.debug("client disconnected before all training requests completed")
         return response
 
     async def _single_character_training(
