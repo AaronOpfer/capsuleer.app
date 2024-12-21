@@ -4,6 +4,7 @@ import {StaticSkill, skill_data} from "../static_skill_data";
 import {attribute_types, sp_required} from "../misc/sp";
 import {format_duration, format_with_decimals} from "../misc/formatting";
 import SkillRequirementTree from "./skill_requirement_tree";
+import SkillCostsForCharacter from "./skill_costs_for_character";
 import Skill from "./skill";
 
 enum SkillsToDisplay {
@@ -235,6 +236,10 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
                     <FocusedSkill
                         skill_id={this.state.focused_skill}
                         onClose={this.on_focus_close}
+                    />
+                    <SkillCostsForCharacter
+                        skill={skill_data.skill(this.state.focused_skill)}
+                        char_skills={this.props.data}
                     />
                     <SkillRequirementTree
                         skill={skill_data.skill(this.state.focused_skill)}
