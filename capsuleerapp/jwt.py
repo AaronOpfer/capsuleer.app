@@ -1,36 +1,39 @@
+"""
+Handles JWT decoding -- quite a bit of this file was copied directly from 
+the documentation here:
+https://developers.eveonline.com/docs/services/sso/?h=sso#validating-jwt-tokens
+
+With the major changes being to swap out the ancient python2-based 'jose'
+for a modern jwt library.
+"""
+
+import cachetools
 import requests
 import time
 
 import jwt
 
 METADATA_URL = "https://login.eveonline.com/.well-known/oauth-authorization-server"
-METADATA_CACHE_TIME = 300  # 5 minutes
+METADATA_CACHE_TIME = 300
 ACCEPTED_ISSUERS = ("logineveonline.com", "https://login.eveonline.com")
 EXPECTED_AUDIENCE = "EVE Online"
 
-# We don't want to fetch the jwks data on every request, so we cache it for a short period
-jwks_metadata = None
-jwks_metadata_ttl = 0
+jwks_client = None
 
-
-def fetch_jwks_metadata():
-    """
-    Fetches the JWKS metadata from the SSO server.
-
-    :returns: The JWKS metadata
-    """
-    global jwks_metadata, jwks_metadata_ttl
-    if jwks_metadata is None or jwks_metadata_ttl < time.time():
+@cachetools.cached(cache=cachetools.TTLCache(1000, 300))
+def _fetch_jwks_key(token) -> str:
+    global jwks_client
+    if jwks_client is None:
         resp = requests.get(METADATA_URL)
         resp.raise_for_status()
         metadata = resp.json()
+        jwks_client = jwt.PyJWKClient(metadata["jwks_uri"])
 
-        jwks_uri = metadata["jwks_uri"]
+    signing_key = jwks_client.get_signing_key_from_jwt(token)
+    return signing_key
 
-    return jwks_uri
 
-
-def validate_jwt_token(token):
+def _validate_jwt_token(token):
     """
     Validates a JWT Token.
 
@@ -39,51 +42,30 @@ def validate_jwt_token(token):
     :raises ExpiredSignatureError: If the token has expired
     :raises JWTError: If the token is invalid
     """
-    # url = "https://dev-87evx9ru.auth0.com/.well-known/jwks.json"
-
-    optional_custom_headers = {"User-agent": "custom-user-agent"}
-
-    jwks_client = jwt.PyJWKClient(fetch_jwks_metadata(), headers=optional_custom_headers)
-
-    signing_key = jwks_client.get_signing_key_from_jwt(token)
-
-    # metadata = fetch_jwks_metadata()
-    # keys = metadata["keys"]
-    # Fetch the key algorithm and key idfentifier from the token header
     header = jwt.get_unverified_header(token)
-    # key = [
-    #     item
-    #     for item in keys
-    #     if item["kid"] == header["kid"] and item["alg"] == header["alg"]
-    # ].pop()
     return jwt.decode(
         token,
-        key=signing_key,
+        key=_fetch_jwks_key(token),
         algorithms=header["alg"],
         issuer=ACCEPTED_ISSUERS,
         audience=EXPECTED_AUDIENCE,
     )
 
 
-def is_token_valid(client_id, token):
+def is_token_valid(client_id, token) -> (bool, list):
     """
     Simple check if the token is valid or not.
 
     :returns: True if the token is valid, False otherwise
     """
     try:
-        claims = validate_jwt_token(token)
-        # If our client_id is in the audience list, the token is valid, otherwise, we got a token for another client.
+        claims = _validate_jwt_token(token)
         return client_id in claims["aud"], claims
     except jwt.ExpiredSignatureError:
-        print("JWT has expired")
         return False, None
     except jwt.InvalidSignatureError:
-        print("Invalid signature")
         return False, None
     except jwt.InvalidTokenError:
-        print("Invalid token")
         return False, None
     except Exception:
-        # Something went wrong
         return False, None
