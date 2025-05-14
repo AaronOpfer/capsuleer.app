@@ -19,8 +19,9 @@ from aiohttp.abc import AbstractAccessLogger
 from aiohttp_session import get_session
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
+from .jwt import is_token_valid
 from .db import Database
-from .esi import ESISession
+from .esi import ESISession, get_character
 from .data import implant_type_id_to_learning_bonus
 from .types import Character, ItemTypes, NoSuchCharacter, CharacterNeedsUpdated
 from .isk_for_sp import get_isk_for_sp_options
@@ -167,7 +168,12 @@ class Server:
 
         authz_code = request.rel_url.query["code"]
         access_token = await self._esi.get_access_token(authz_code)
-        character, owner_hash = await self._esi.get_character(access_token)
+        valid, claims = is_token_valid(self._client_id, access_token.access_token)
+        if not valid:
+            # NOTE: handle this more gracefully
+            raise ValueError("invalid token")
+
+        character, owner_hash = get_character(claims)
 
         old_account_id = session.get("account_id")
         session["account_id"] = await self.db.character_authorized(
@@ -198,7 +204,7 @@ class Server:
         session = await get_session(request)
         session["state"] = int.from_bytes(os.urandom(8), "little")
         url = (
-            "https://login.eveonline.com/oauth/authorize?"
+            "https://login.eveonline.com/v2/oauth/authorize?"
             "response_type=code"
             "&redirect_uri=%s/callback"
             "&client_id=%s"
