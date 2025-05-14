@@ -482,4 +482,4 @@ class ESISession(PublicESISession):
 
 
 def get_character(claims) -> tuple[Character, str]:
-    return (Character(int(claims["sub"][14:]), claims["name"]), claims["owner"])
+    return (Character(int(claims["sub"].replace("CHARACTER:EVE:", "")), claims["name"]), claims["owner"])
