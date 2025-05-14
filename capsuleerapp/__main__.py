@@ -198,7 +198,7 @@ class Server:
         session = await get_session(request)
         session["state"] = int.from_bytes(os.urandom(8), "little")
         url = (
-            "https://login.eveonline.com/oauth/authorize?"
+            "https://login.eveonline.com/v2/oauth/authorize?"
             "response_type=code"
             "&redirect_uri=%s/callback"
             "&client_id=%s"
