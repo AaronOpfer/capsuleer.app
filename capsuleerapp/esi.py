@@ -132,6 +132,7 @@ def _esi(
 
     accepted_arg_count = len(url_format.split("{}")) - 1
     url_format_func = (f"/v{version}/" + url_format).format
+    url_format_func = ("/"+url_format).format
 
     if session_type is SessionType.headers:
         accepted_arg_count += 1  # takes a hidden session argument
@@ -335,7 +336,7 @@ class ESISession(PublicESISession):
 
     async def _get_refresh_token(self, refresh_token):
         async with self._login_session.post(
-            "https://login.eveonline.com/oauth/token",
+            "https://login.eveonline.com/v2/oauth/token",
             data={"grant_type": "refresh_token", "refresh_token": refresh_token},
         ) as resp:
             data = await resp.json()
