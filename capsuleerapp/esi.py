@@ -132,6 +132,7 @@ def _esi(
 
     accepted_arg_count = len(url_format.split("{}")) - 1
     url_format_func = (f"/v{version}/" + url_format).format
+    # url_format_func = ("/"+url_format).format
 
     if session_type is SessionType.headers:
         accepted_arg_count += 1  # takes a hidden session argument
@@ -318,6 +319,7 @@ class ESISession(PublicESISession):
         await self._login_session.__aexit__(a, b, c)  # TODO is thsi ok?
         return await self._session.__aexit__(a, b, c)
 
+
     async def get_access_token(self, authz_code) -> AccessToken:
         async with self._login_session.post(
             "https://login.eveonline.com/v2/oauth/token",
@@ -406,18 +408,6 @@ class ESISession(PublicESISession):
 
         await asyncio.shield(refresh_task)
 
-    async def get_character(self, access_token: AccessToken) -> tuple[Character, str]:
-        async with self._session.get(
-            self._esi_url + "/verify/",
-            headers=_make_header_from_token(access_token),
-        ) as resp:
-            resp.raise_for_status()
-            result = await resp.json()
-            return (
-                Character(int(result["CharacterID"]), result["CharacterName"]),
-                result["CharacterOwnerHash"],
-            )
-
     @_requires_session
     async def ensure_session(self, session: ABCSession):
         pass
@@ -489,3 +479,7 @@ class ESISession(PublicESISession):
     get_implants = _esi(1, "characters/{}/implants/", "get_implants", _STC)
     _get_structure_market = _esi(1, "markets/structures/{}", "_get_structure_market", _STH, True)
     # fmt: on
+
+
+def get_character(claims) -> tuple[Character, str]:
+    return (Character(int(claims["sub"].replace("CHARACTER:EVE:", "")), claims["name"]), claims["owner"])
