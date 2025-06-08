@@ -71,12 +71,12 @@ export default class CharSummary extends React.Component<CharSummaryProps, Recor
                         <tbody>
                             <tr>
                                 <td>
-                                    {(data ? Math.floor(data.wallet_balance) : 0).toLocaleString()}
+                                    {data ? Math.floor(data.wallet_balance).toLocaleString() : "-"}
                                 </td>
                                 <td>ISK</td>
                             </tr>
                             <tr title={extractor_text}>
-                                <td>{(data ? 0 | data.total_sp : 0).toLocaleString()}</td>
+                                <td>{data ? Math.floor(data.total_sp).toLocaleString() : "-"}</td>
                                 <td>SP</td>
                             </tr>
                             {unallocated_sp}
