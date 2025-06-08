@@ -80,7 +80,7 @@ class AccessLogger(AbstractAccessLogger):
 
         out(
             f"{ip} {response.status} {request.method} "
-            f"{request.path} {time*1000:.3f}ms"
+            f"{request.path} {time * 1000:.3f}ms"
         )
 
 

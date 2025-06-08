@@ -5,6 +5,7 @@ import collections
 import asyncpg
 
 from .types import Character, ABCSession, AccessToken, NoSuchCharacter
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class DatabaseSession(ABCSession):
         "_access_token",
     )
 
-    def __init__(self, pool, account_id, character_id):
+    def __init__(self, pool: asyncpg.Pool, account_id: int, character_id: int):
         self._pool = pool
         self._account_id = account_id
         self._character_id = character_id
@@ -76,7 +77,7 @@ class DatabaseSession(ABCSession):
         self._access_token = new_token
 
     @property
-    def character(self):
+    def character(self) -> Character:
         return self._character
 
 
@@ -91,11 +92,13 @@ class Database:
 
     __slots__ = "_connargs", "_cache", "_pool", "_loop", "_locks", "_timerhandles"
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self._connargs = kwargs
         self._loop = asyncio.get_running_loop()
         # The locks protect multiple simultaneous accesses to the session cache.
-        self._locks = collections.defaultdict(asyncio.Lock)
+        self._locks: collections.defaultdict[tuple[int, int], asyncio.Lock] = (
+            collections.defaultdict(asyncio.Lock)
+        )
         # This is a _positive_ cache for Database sessions. It is cleared out
         # by installing asyncio timers on the self._loop above.
         self._cache: dict[tuple[int, int], DatabaseSession] = {}
@@ -154,8 +157,14 @@ class Database:
         return new_session
 
     @staticmethod
-    def _insert_character(conn, account_id, character, token, owner_hash):
-        return conn.fetchrow(
+    async def _insert_character(
+        conn: asyncpg.Connection,
+        account_id: int,
+        character: Character,
+        token: AccessToken,
+        owner_hash: str,
+    ) -> None:
+        await conn.fetchrow(
             "INSERT INTO character "
             "(character_id, account_id, access_token, refresh_token, "
             "access_token_expires, name, owner_hash)"
@@ -170,7 +179,7 @@ class Database:
         )
 
     @staticmethod
-    async def _insert_account(conn):
+    async def _insert_account(conn: asyncpg.Connection) -> int:
         record = await conn.fetchrow(
             "INSERT INTO account (id) VALUES (DEFAULT) RETURNING id"
         )
@@ -204,7 +213,7 @@ class Database:
             )
         return [Character(r[0], r[1]) for r in rows], [r[2] for r in rows]
 
-    async def delete_character(self, account_id, character_id):
+    async def delete_character(self, account_id: int, character_id: int) -> None:
         async with self._pool.acquire() as conn:
             async with conn.transaction():
                 record = await conn.execute(
@@ -216,8 +225,13 @@ class Database:
                     raise Exception(record)
 
     async def character_authorized(
-        self, account_id, character, access_token, owner_hash
-    ):
+        self,
+        account_id: int,
+        character: Character,
+        access_token: AccessToken,
+        owner_hash: str,
+    ) -> int:
+        "Returns the account_id of the character."
         async with self._pool.acquire() as conn:
             async with conn.transaction():
                 old_char = await conn.fetchrow(
