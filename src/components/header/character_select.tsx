@@ -65,7 +65,12 @@ export default class CharacterSelect extends React.PureComponent<
                 }
             >
                 <div className="character_select_container">
-                    <img src={character_url(p.id, 64)} width="64" height="64" />
+                    <img
+                        src={character_url(p.id, 64)}
+                        width="64"
+                        height="64"
+                        srcSet={`${character_url(p.id, 64)}, ${character_url(p.id, 128)} 2x, ${character_url(p.id, 256)} 4x`}
+                    />
                 </div>
                 {this.props.valid ? (
                     <SkillProgress current_time={p.current_time} training={p.training} />
