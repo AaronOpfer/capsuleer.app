@@ -73,6 +73,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ruff-0.11.13-py313h67f39b2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/sentry-sdk-2.29.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/setuptools-80.9.0-pyhff2d567_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/supervisor-4.2.5-py313h78bf25f_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/tk-8.6.13-noxft_hd72426e_102.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typing_extensions-4.14.0-pyhe01879c_0.conda
@@ -240,7 +241,7 @@ packages:
 - pypi: ./
   name: capsuleerapp
   version: '1'
-  sha256: cf286d8f217e0f01a0b5e5f0f7ba6e9831a8b04a6a6330993349ce3950aad38d
+  sha256: f32750d004d85871c1a65eeec1df9fb7db4a9c3c9076cc3830d636dcf2a9bf63
   requires_dist:
   - aiohttp-session>2.11,<3
   editable: true
@@ -789,7 +790,8 @@ packages:
   - python
   license: BSD-3-Clause
   license_family: BSD
-  purls: []
+  purls:
+  - pkg:pypi/pycparser?source=hash-mapping
   size: 110100
   timestamp: 1733195786147
 - conda: https://conda.anaconda.org/conda-forge/noarch/pygments-2.19.1-pyhd8ed1ab_0.conda
@@ -940,6 +942,18 @@ packages:
   - pkg:pypi/setuptools?source=hash-mapping
   size: 748788
   timestamp: 1748804951958
+- conda: https://conda.anaconda.org/conda-forge/linux-64/supervisor-4.2.5-py313h78bf25f_3.conda
+  sha256: 50c4ef2bd5a9a90d2329ca4013c4e6cff48c121dbd558d117a15a4d8f3192a33
+  md5: df3044aeb22e61972852fc644619cdb1
+  depends:
+  - python >=3.13.0rc2,<3.14.0a0
+  - python_abi 3.13.* *_cp313
+  - setuptools
+  license: BSD-3-Clause-Modification AND BSD-3-Clause AND PSF-2.0
+  purls:
+  - pkg:pypi/supervisor?source=hash-mapping
+  size: 473139
+  timestamp: 1727121731449
 - conda: https://conda.anaconda.org/conda-forge/linux-64/tk-8.6.13-noxft_hd72426e_102.conda
   sha256: a84ff687119e6d8752346d1d408d5cf360dee0badd487a472aa8ddedfdc219e1
   md5: a0116df4f4ed05c303811a837d5b39d8

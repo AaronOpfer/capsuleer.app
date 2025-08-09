@@ -6,11 +6,13 @@ import {
     CharacterNameAndId,
     download_character_training_progress,
 } from "../../server";
+import {Settings} from "../md";
 
 interface HeaderProps {
     characters: CharacterNameAndId[];
     selected: number | null;
     on_character_select: any;
+    on_toggle_settings: () => void;
 }
 
 interface HeaderState {
@@ -119,9 +121,9 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
                         />
                     ))}
                     <div className="spacer" />
-                    <a className="header_add_character" title="Add another character" href="/auth">
-                        +
-                    </a>
+                    <div onClick={this.props.on_toggle_settings} className="header_settings">
+                        <Settings />
+                    </div>
                 </div>
             </header>
         );

@@ -51,20 +51,21 @@ header > div {
     display: flex;
 }
 
-a.header_add_character {
-    font-size: 48px;
-    line-height: 76px;
-    text-decoration: none;
-    display: block;
-    width: 64px;
+
+.header_settings {
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    padding: 0 10px;
+    height: 76px;
 }
 
-a.header_add_character:link, a.header_add_character:link:visited {
-    color: var(--skillcat-eh);
+.header_settings > .md {
+    fill: var(--skillcat-eh);
 }
 
-a.header_add_character:link:hover, a.header_add_character:link:hover:visited, a.header_add_character:hover {
-    color: var(--skillbar-t);
+.header_settings:hover > .md {
+    fill: var(--skillbar-t);
 }
 
 a {
@@ -767,6 +768,94 @@ td.d {
     font-size: 0.8em;
     letter-spacing: -0.2px;
 }
+
+.settings {
+    display: flex;
+}
+.settings_interior {
+    margin: auto;
+}
+.settings_interior > h3 {
+    text-align: center;
+}
+.settings_add_character {
+    display: block;
+    height: 76px;
+    line-height: 34px;
+    color: #cce;
+    text-align: center;
+    border-radius: 5px;
+    border: 1px solid #777;
+    margin: 8px;
+}
+
+.settings_character:first-child > .settings_character_movebuttons > .md:first-child {
+    display: none;
+}
+.settings_character:last-child > .settings_character_movebuttons > .md:last-child {
+    display: none;
+}
+
+.settings_add_character > .md {
+    margin: 4px;
+    vertical-align: middle;
+    fill: #cce;
+}
+
+.settings_add_character:hover {
+    border: 1px solid #aaa;
+    color: #fff;
+}
+.settings_add_character:hover > .md {
+    fill: #fff;
+}
+.settings_character {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin: 4px;
+    padding: 0 30px;
+}
+
+.settings_character_name {
+    flex-grow: 1;
+}
+
+.settings_character_movebuttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.settings_character > .settings_character_movebuttons > .md {
+    fill: #664;
+}
+.settings_character:hover {
+    background: rgba(0,0,0,0.1);
+}
+.settings_character:hover > .settings_character_movebuttons > .md {
+    fill: #777;
+}
+.settings_character:hover > .settings_character_movebuttons > .md:hover {
+    fill: #eef;
+}
+
+.settings_character_movebuttons > .md {
+    cursor: pointer;
+}
+
+.settings_character_delete {
+    fill: #733;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    padding: 8px;
+}
+
+.settings_character_delete:hover {
+    fill: var(--error);
+}
+
 
 .s0_0 { background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAAANCAYAAAADk4jiAAAAWElEQVRYR2N0cfH9z0Ai2LNnMyNIy0jTC/Iz40jzNCX+HQ0wInMWLEeNBthogOEOAWqUu6MpbDSFjaYwlBCgRrYarSVJzFajATYaYLQth0ZT2GgKG9wpDAA3GAQdNBLCrAAAAABJRU5ErkJggg==") }
 .s0_1 { background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAAANCAYAAAADk4jiAAAAbElEQVRYR+2WsQ4AEAwF9d8MFl9rMfg3QmKRSCsskjP3Dc61Ki7X6k5PEOkR7+NxtpT0bbbfWQCm2zIfGWA6q1EBMCOoWQYwgOkEXnw2zDCdMzPsZhXCMAzbE2CGGe1YVwNa0ggOw4ygXhvWAMvI9w7Ul3+BAAAAAElFTkSuQmCC") }

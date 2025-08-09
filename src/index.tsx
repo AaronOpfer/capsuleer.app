@@ -22,6 +22,7 @@ import Header from "./components/header/header";
 import SkillBrowser from "./components/skill_browser";
 import CharSummary from "./components/char_summary";
 import Wallet from "./components/wallet";
+import Settings from "./components/settings";
 
 interface BodyProps {
     character_name: string;
@@ -218,6 +219,7 @@ interface AuthenticatedContentState {
     character_name: string | null;
     characters: CharacterNameAndId[] | null;
     valid: boolean;
+    settings_open: boolean;
 }
 
 class AuthenticatedContent extends React.Component<
@@ -231,11 +233,25 @@ class AuthenticatedContent extends React.Component<
             character_name: null,
             valid: true,
             characters: null,
+            settings_open: false,
         };
-        this.on_character_select_click = this.on_character_select_click.bind(this);
         this.on_character_delete_request = this.on_character_delete_request.bind(this);
         this.invalidate_character = this.invalidate_character.bind(this);
     }
+
+    on_change_character_order = (new_order: number[]) => {
+        const old_characters = this.state.characters;
+        if (old_characters === null) {
+            return;
+        }
+        const characters = new_order.map((cid) => old_characters.find((c) => c.id == cid)!);
+        this.setState({characters});
+        fetch("/characters/ordering", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(new_order),
+        });
+    };
 
     on_character_delete_request(character_name: string) {
         this.delete_character(character_name);
@@ -293,9 +309,9 @@ class AuthenticatedContent extends React.Component<
         this.setState(new_state);
     }
 
-    on_character_select_click(id: number, name: string, valid: boolean) {
-        this.setState({character_id: id, character_name: name, valid});
-    }
+    on_character_select_click = (id: number, name: string, valid: boolean) => {
+        this.setState({character_id: id, character_name: name, valid, settings_open: false});
+    };
 
     invalidate_character(id: number) {
         if (this.state.characters == undefined) {
@@ -319,6 +335,12 @@ class AuthenticatedContent extends React.Component<
         this.setState(new_state);
     }
 
+    on_toggle_settings = () => {
+        this.setState({
+            settings_open: !this.state.settings_open,
+        });
+    };
+
     render() {
         if (!this.state.character_id || !this.state.characters) {
             return (
@@ -333,7 +355,13 @@ class AuthenticatedContent extends React.Component<
             );
         }
 
-        const body = this.state.valid ? (
+        const body = this.state.settings_open ? (
+            <Settings
+                characters={this.state.characters}
+                on_change_character_order={this.on_change_character_order}
+                on_request_delete={this.on_character_delete_request}
+            />
+        ) : this.state.valid ? (
             <Body
                 character_name={this.state.character_name!}
                 character_id={this.state.character_id}
@@ -352,6 +380,7 @@ class AuthenticatedContent extends React.Component<
                     characters={this.state.characters}
                     selected={this.state.character_id}
                     on_character_select={this.on_character_select_click}
+                    on_toggle_settings={this.on_toggle_settings}
                 />
                 {body}
                 <CharacterBackground character_id={this.state.character_id} />

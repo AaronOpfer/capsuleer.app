@@ -3,6 +3,7 @@ import {character_url} from "../../misc/urls";
 import {CharacterTrainingProgress} from "../../server";
 import {CharacterHover} from "./character_hover";
 import {SkillProgress} from "./skill_progress";
+import Headshot from "../headshot";
 
 export interface CharacterSelectProps {
     id: number;
@@ -65,12 +66,7 @@ export default class CharacterSelect extends React.PureComponent<
                 }
             >
                 <div className="character_select_container">
-                    <img
-                        src={character_url(p.id, 64)}
-                        width="64"
-                        height="64"
-                        srcSet={`${character_url(p.id, 64)}, ${character_url(p.id, 128)} 2x, ${character_url(p.id, 256)} 4x`}
-                    />
+                    <Headshot id={p.id} />
                 </div>
                 {this.props.valid ? (
                     <SkillProgress current_time={p.current_time} training={p.training} />
