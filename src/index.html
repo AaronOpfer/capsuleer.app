@@ -9,9 +9,10 @@
     <meta name="og:image" content="https://capsuleer.app/s/og.png">
     <meta name="og:url" content="https://capsuleer.app/">
     <link rel="apple-touch-icon" href="static/capsule.png">
+    <link rel="icon" href="static/capsule.svg" type="image/svg+xml">
     <meta name="og:description" content="See all of your characters' skill plans and evaluate effectiveness of skill injectors and cerebral accelerators.
 Tie all of your characters into one convenient SSO login. No email required!">
-    <script>window.early_download_characters = fetch('/characters', {credentials: 'same-origin'});window.early_download_character_training_progress = fetch("/characters/training", {credentials: "same-origin"});</script>
+   <script>window.early_download_characters=fetch("/characters",{credentials:"same-origin"}),window.early_download_character_training_progress=fetch("/characters/training",{credentials:"same-origin"})</script>
   </head>
   <body>
     <div id=app>
