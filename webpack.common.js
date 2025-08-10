@@ -50,7 +50,7 @@ module.exports = {
             inject: 'head'
         }),
         new CompressionPlugin({
-            test: /\.(js|css|html|svg)(\?.*)?$/i,
+            test: /\.(js|css|html|svg|ico)(\?.*)?$/i,
         }),
     ]
 };
