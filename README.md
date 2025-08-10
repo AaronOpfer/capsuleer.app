@@ -61,7 +61,7 @@ If you log into this account and again in the future, the `esi-markets.structure
 
 #### supervisor
 
-I'm using supervisor to start and run all daemons, except for nginx and postgres, which comes from the Debian system.
+I'm using supervisor to start and run all daemons, except for nginx and postgres. Supervisor comes from pixi, but can also come from Debian.
 
 #### `capsuleerapp` app server
 

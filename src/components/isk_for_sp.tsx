@@ -238,7 +238,7 @@ export default class ISKForSPPanel extends React.PureComponent<
             <ISKForSPPanelItem formatter={formatter} key={s.type_id} {...s} />
         ));
 
-        const extra_controls: JSX.Element[] = [];
+        const extra_controls: React.JSX.Element[] = [];
         if (this.props.millions_of_sp != null && state.accelerators.length) {
             if (this.props.biology_implant_multiplier != 1.1) {
                 extra_controls.push(

@@ -23,12 +23,12 @@ export default class CharacterSelect extends React.PureComponent<
     CharacterSelectProps,
     CharacterSelectState
 > {
-    ref: React.RefObject<HTMLDivElement>;
+    ref: React.RefObject<HTMLDivElement | null>;
 
     constructor(props) {
         super(props);
         this.state = {hover_position: null};
-        this.ref = React.createRef();
+        this.ref = React.createRef<HTMLDivElement | null>();
     }
 
     on_mouse_enter = () => {

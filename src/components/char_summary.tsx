@@ -12,9 +12,9 @@ export default class CharSummary extends React.Component<CharSummaryProps, Recor
     render() {
         const data = this.props.data;
 
-        let queue_paused: JSX.Element | null = null;
-        let accelerator: JSX.Element | null = null;
-        let unallocated_sp: JSX.Element | null = null;
+        let queue_paused: React.JSX.Element | null = null;
+        let accelerator: React.JSX.Element | null = null;
+        let unallocated_sp: React.JSX.Element | null = null;
         let extractor_text = "";
         let radar = <RadarOutline />;
         if (data != null) {

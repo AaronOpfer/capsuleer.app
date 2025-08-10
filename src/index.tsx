@@ -1,7 +1,7 @@
 "use strict";
 
 import React from "react";
-import ReactDOM from "react-dom";
+import {createRoot} from "react-dom/client";
 import {character_url} from "./misc/urls";
 import {setTimeoutWithVisibility, TimeoutHandle} from "./misc/visibilitytimeout";
 import CharacterSkills from "./character_skills";
@@ -440,11 +440,12 @@ class Application extends React.Component<Record<string, never>, ApplicationStat
 }
 
 function render() {
-    ReactDOM.render(
+    const container = document.querySelector("#app");
+    const root = createRoot(container!);
+    root.render(
         <React.StrictMode>
             <Application />
-        </React.StrictMode>,
-        document.querySelector("#app"),
+        </React.StrictMode>
     );
 }
 
