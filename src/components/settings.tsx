@@ -70,6 +70,7 @@ export default class Settings extends React.PureComponent<SettingsProps> {
         }
         const display = characters.map((character) => (
             <SettingsCharacter
+                key={character.id}
                 on_request_delete={this.props.on_request_delete}
                 on_request_move={this.move_character}
                 character={character}
