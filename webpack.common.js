@@ -31,7 +31,7 @@ module.exports = {
                 use: 'babel-loader'
             },
             {
-                test: /\.(png|jpe?g|gif|svg|webp)$/i,
+                test: /\.(png|jpe?g|gif|svg|webp|ico)$/i,
                 type: 'asset/resource',
                 generator: {filename: '[name][ext]?[contenthash]'}
             }
@@ -45,6 +45,7 @@ module.exports = {
             typescript: {memoryLimit: 256}
         }),
         new HtmlWebpackPlugin({
+            favicon: 'src/static/favicon.ico',
             template: 'src/index.html',
             inject: 'head'
         }),
