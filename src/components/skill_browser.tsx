@@ -6,6 +6,7 @@ import {format_duration, format_with_decimals} from "../misc/formatting";
 import SkillRequirementTree from "./skill_requirement_tree";
 import SkillCostsForCharacter from "./skill_costs_for_character";
 import Skill from "./skill";
+import loadingSvg from "../static/loading.svg";
 
 enum SkillsToDisplay {
     all_skills = 0,
@@ -129,7 +130,7 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
                     </table>
                     <p className="focused_skill_description">
                         {this.state.description === null ? (
-                            <img width={64} height={64} src="s/loading.svg" />
+                            <img width={64} height={64} src={loadingSvg} />
                         ) : (
                             this.state.description
                         )}

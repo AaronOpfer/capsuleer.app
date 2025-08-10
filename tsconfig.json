@@ -3,11 +3,12 @@
         "outDir": "./static/",
         "sourceMap": true,
         "noImplicitAny": false,
-        "module": "commonjs",
+        "module": "es6",
         "target": "esnext",
         "jsx": "react",
-	"resolveJsonModule": true,
-	"allowSyntheticDefaultImports": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
         "strictNullChecks": true
     },
     "include": [

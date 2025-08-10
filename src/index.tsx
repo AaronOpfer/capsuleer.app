@@ -1,5 +1,6 @@
 "use strict";
 
+import "./static/s.css";
 import React from "react";
 import {createRoot} from "react-dom/client";
 import {character_url} from "./misc/urls";
@@ -23,6 +24,7 @@ import SkillBrowser from "./components/skill_browser";
 import CharSummary from "./components/char_summary";
 import Wallet from "./components/wallet";
 import Settings from "./components/settings";
+import loadingSvg from "./static/loading.svg";
 
 interface BodyProps {
     character_name: string;
@@ -349,7 +351,7 @@ class AuthenticatedContent extends React.Component<
                         <h1>capsuleer.app</h1>
                     </header>
                     <div>
-                        <img src="s/loading.svg" />
+                        <img src={loadingSvg} />
                     </div>
                 </>
             );

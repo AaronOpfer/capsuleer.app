@@ -4,6 +4,7 @@ import {format_duration} from "../misc/formatting";
 import CharacterSkills from "../character_skills";
 import {sp_required, calculate_number_of_injectors} from "../misc/sp";
 import {format_with_decimals} from "../misc/formatting";
+import loadingSvg from "../static/loading.svg";
 
 const level = ["I", "II", "III", "IV", "V"];
 
@@ -38,7 +39,7 @@ export default class SkillQueue extends React.Component<SkillQueueProps, Record<
         if (data == null) {
             return (
                 <div className="skill_queue skill_queue_loading">
-                    <img className="loading_indicator" src="s/loading.svg" />
+                    <img className="loading_indicator" src={loadingSvg} />
                 </div>
             );
         }

@@ -1,4 +1,5 @@
 import React from "react";
+import phonePng from "../static/phone.png";
 
 export default class LoginForm extends React.PureComponent<
     Record<string, never>,
@@ -7,7 +8,7 @@ export default class LoginForm extends React.PureComponent<
     render() {
         return (
             <div className="login">
-                <img className="phone" src="/s/phone.png" alt="Sample" />
+                <img className="phone" src={phonePng} alt="Sample" />
                 <div className="login_content">
                     <h3>Login to view your character&apos;s skills</h3>
                     <a href="/auth">
