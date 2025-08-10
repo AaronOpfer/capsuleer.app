@@ -3,7 +3,6 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
     cache: {type: "filesystem"},
@@ -39,7 +38,6 @@ module.exports = {
         ],
     },
     plugins: [
-        new BundleAnalyzerPlugin({analyzerHost:'0.0.0.0'}),
         new MiniCssExtractPlugin({
             filename: "[name].css?[contenthash]"
         }),
