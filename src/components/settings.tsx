@@ -1,7 +1,6 @@
 "use strict";
 
 import React from "react";
-import ReactDOM from "react-dom";
 import {MoveUp, MoveDown, PersonAdd, PersonRemove} from "./md";
 import Headshot from "./headshot";
 import {CharacterNameAndId} from "../server";

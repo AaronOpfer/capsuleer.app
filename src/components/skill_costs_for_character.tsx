@@ -1,7 +1,7 @@
 import React from "react";
 import CharacterSkills from "../character_skills";
 import {StaticSkill, skill_data} from "../static_skill_data";
-import {attribute_types, sp_required} from "../misc/sp";
+import {sp_required} from "../misc/sp";
 import {format_duration, format_with_decimals} from "../misc/formatting";
 
 interface SkillCostsForCharacterProps {

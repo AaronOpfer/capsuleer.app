@@ -577,7 +577,7 @@ footer { text-align: center; }
     line-height: 15px;
     text-align: center;
     font-family: var(--font-family-monospace);
-    font-height: 0.9rem;
+    font-size: 0.9rem;
 }
 
 .split_view .skill_queue {
@@ -741,7 +741,7 @@ footer { text-align: center; }
     font-style: italic;
 }
 
-.wallet_table tr:nth_child(2n) {
+.wallet_table tr:nth-child(2n) {
     background: rgba(0, 0, 0, 0.1);
 }
 

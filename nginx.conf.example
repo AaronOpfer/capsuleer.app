@@ -1,47 +1,50 @@
 server {
-	server_name capsuleer.app;
+    server_name capsuleer.app;
 
-	location / {
-		proxy_pass http://unix:/tmp/prod.esi.sock;
-		proxy_set_header X-Real-IP $remote_addr;
-	}
+    location / {
+        proxy_pass http://unix:/tmp/prod.esi.sock;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
 
-	location /characters/training {
-		proxy_pass http://unix:/tmp/prod.esi.sock;
-		proxy_set_header X-Real-IP $remote_addr;
-		proxy_buffering off;
-	}
+    location /characters/training {
+        proxy_pass http://unix:/tmp/prod.esi.sock;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
+    }
 
-	location = / {
-		alias /home/capsuleer.app/static/;
-		gzip_static on;
-		add_header X-Frame-Options "SAMEORIGIN" always;
-		add_header X-Content-Type-Options "nosniff" always;
-		add_header Referrer-Policy "no-referrer" always;
-		add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-Y+auAOxJ80eMOXCc9GpF1FTzpSp0o6Fa4woQvmdpGfA=' 'sha256-/joNxkP90Y8TPMYnwhqfqoCZYM4WFh9Z84JxIifane0='; img-src https://images.evetech.net/ https://web.ccpgamescdn.com 'self' data:; connect-src 'self' https://esi.evetech.net; " always;
-		add_header Cache-Control must-revalidate;
-		charset UTF-8;
-		try_files index.html index.html;
-	}
+    location = / {
+        alias /home/capsuleer.app/static/;
+        gzip_static on;
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-Y+auAOxJ80eMOXCc9GpF1FTzpSp0o6Fa4woQvmdpGfA=' 'sha256-/joNxkP90Y8TPMYnwhqfqoCZYM4WFh9Z84JxIifane0='; img-src https://images.evetech.net/ https://web.ccpgamescdn.com 'self' data:; connect-src 'self' https://esi.evetech.net; " always;
+        add_header Cache-Control must-revalidate;
+        charset UTF-8;
+        try_files index.html index.html;
+    }
 
-	location = /s/ {
-		return 404;
-	}
+    location = /s/ {
+        return 404;
+    }
 
-	location /s/ {
-		add_header Cache-Control public;
-		alias /home/capsuleer.app/static/;
-		gzip_static on;
-		if ($query_string) {
-			expires max;
-		}
+    location ~ ^/s/(.+-........\.+)$ {
+        add_header Cache-Control "public, immutable";
+        alias /home/dev/capsuleer.app/static/$1;
+        gzip_static on;
+        expires max;
+    }
 
-	}
+    location /s/ {
+        add_header Cache-Control public;
+        alias /home/capsuleer.app/static/;
+        gzip_static on;
+    }
 
-	location = /favicon.ico {
-		alias /home/capsuleer.app/static/favicon.ico;
-		gzip_static on;
-	}
+    location = /favicon.ico {
+        alias /home/capsuleer.app/static/favicon.ico;
+        gzip_static on;
+    }
 
     listen [::]:443 ssl http2; # managed by Certbot
     listen 443 http2 ssl; # managed by Certbot

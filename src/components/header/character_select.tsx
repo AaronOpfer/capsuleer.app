@@ -1,5 +1,4 @@
 import React from "react";
-import {character_url} from "../../misc/urls";
 import {CharacterTrainingProgress} from "../../server";
 import {CharacterHover} from "./character_hover";
 import {SkillProgress} from "./skill_progress";

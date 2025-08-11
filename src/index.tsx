@@ -447,7 +447,7 @@ function render() {
     root.render(
         <React.StrictMode>
             <Application />
-        </React.StrictMode>
+        </React.StrictMode>,
     );
 }
 

@@ -198,13 +198,13 @@ class Server:
         session = await get_session(request)
         session["state"] = int.from_bytes(os.urandom(8), "little")
         url = (
-            "https://login.eveonline.com/v2/oauth/authorize?"
-            "response_type=code"
-            "&redirect_uri=%s/callback"
-            "&client_id=%s"
-            "&scope=%s"
-            "&state=%d"
-        ) % (self._base_url, self._client_id, " ".join(scopes), session["state"])
+            f"https://login.eveonline.com/v2/oauth/authorize?"
+            f"response_type=code"
+            f"&redirect_uri={self._base_url}/callback"
+            f"&client_id={self._client_id}"
+            f"&scope={' '.join(scopes)}"
+            f"&state={session['state']}"
+        )
         raise aiohttp.web.HTTPFound(url)
 
     async def logout(self, request):

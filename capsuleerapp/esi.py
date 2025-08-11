@@ -18,6 +18,7 @@ from .types import (
     RefreshTokenError,
     CharacterNeedsUpdated,
 )
+from .jwt import EveJWTValidator
 
 logger = logging.getLogger(__name__)
 
@@ -159,14 +160,15 @@ def _esi(
         resp = await request_with_retry(
             self._esilimiter, self._session, url, headers, params
         )
-        try:
-            remaining = int(resp.headers["X-ESI-Error-Limit-Remain"])
-            timeout = int(resp.headers["X-ESI-Error-Limit-Reset"])
-            self._esilimiter.set_remaining(resp.date, remaining - 1, timeout + 0.5)
-        except Exception:
-            logger.warning(
-                "Ignoring error parsing X-ESI-Error-Limit-Remain", exc_info=True
-            )
+        if "X-ESI-Error-Limit-Remain" in resp.headers:
+            try:
+                remaining = int(resp.headers["X-ESI-Error-Limit-Remain"])
+                timeout = int(resp.headers["X-ESI-Error-Limit-Reset"])
+                self._esilimiter.set_remaining(resp.date, remaining - 1, timeout + 0.5)
+            except Exception:
+                logger.warning(
+                    "Ignoring error parsing X-ESI-Error-Limit-Remain", exc_info=True
+                )
         return resp
 
     inner.__name__ = name
@@ -295,7 +297,7 @@ class PublicESISession:
 
 
 class ESISession(PublicESISession):
-    __slots__ = "_login_session", "_refresh_token_tasks"
+    __slots__ = "_login_session", "_refresh_token_tasks", "_validator"
 
     def __init__(self, esi_url, client_id, client_secret_key):
         super().__init__(esi_url)
@@ -305,18 +307,21 @@ class ESISession(PublicESISession):
         }
         auth = aiohttp.BasicAuth(client_id, client_secret_key)
         self._login_session = aiohttp.ClientSession(headers=headers, auth=auth)
+        self._validator = EveJWTValidator(self._login_session)
 
         # Guard against cancellations
         self._refresh_token_tasks = {}
 
     async def __aenter__(self):
-        await self._session.__aenter__()
+        await super().__aenter__()
         await self._login_session.__aenter__()
+        await self._validator.__aenter__()
         return self
 
     async def __aexit__(self, a, b, c):
         await self._login_session.__aexit__(a, b, c)  # TODO is thsi ok?
-        return await self._session.__aexit__(a, b, c)
+        await self._validator.__aexit__(a, b, c)
+        return await super().__aexit__(a, b, c)
 
     async def get_access_token(self, authz_code) -> AccessToken:
         async with self._login_session.post(
@@ -407,16 +412,11 @@ class ESISession(PublicESISession):
         await asyncio.shield(refresh_task)
 
     async def get_character(self, access_token: AccessToken) -> tuple[Character, str]:
-        async with self._session.get(
-            self._esi_url + "/verify/",
-            headers=_make_header_from_token(access_token),
-        ) as resp:
-            resp.raise_for_status()
-            result = await resp.json()
-            return (
-                Character(int(result["CharacterID"]), result["CharacterName"]),
-                result["CharacterOwnerHash"],
-            )
+        result = await self._validator.validate(access_token.access_token)
+        return (
+            Character(int(result["sub"].split(":")[2]), result["name"]),
+            result["owner"],
+        )
 
     @_requires_session
     async def ensure_session(self, session: ABCSession):

@@ -89,8 +89,12 @@ async def get_isk_for_sp_options(
             )
         )
         logger.info(
-            "Found +%d x %dsec accelerator: %d %s for %.2f ISK"
-            % (magnitudes[0], duration / 1000, item_type_id, res["name"], price)
+            "Found +%d x %dsec accelerator: %d %s for %.2f ISK",
+            magnitudes[0],
+            duration / 1000,
+            item_type_id,
+            res["name"],
+            price,
         )
 
     return lsi_price, ssi_price, accelerators

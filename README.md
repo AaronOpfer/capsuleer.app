@@ -1,7 +1,7 @@
 # capsuleer.app
 
 
-This is/was the source code for [capsuleer.app](https://capsuleer.app), an application for managing EVE Online characters. It's primarily written in Python (heavy asyncio usage), and the front-end is React/Typescript with webpack.
+This is/was the source code for [capsuleer.app](https://capsuleer.app), an application for managing EVE Online characters. It's primarily written in Python (heavy asyncio usage), and the front-end is React/Typescript built with Vite.
 
 # How well is capsuleer.app maintained?
 
@@ -33,7 +33,7 @@ Python 3.12 is required to run the main webserver and several "offline" scripts.
 
 ### JavaScript
 
-Node 20.17.0 is required. It's likely newer versions will work too (20.17.0 was LTS at time of writing). The correct version of `node` is installed when using `pixi` as described above. A production build can of the front-end can be made with `npx webpack --config webpack.prod.js`. Production builds include source maps (this is an open-source project after all).
+The correct version of `node` is installed when using `pixi` as described above. A production build can of the front-end can be made with `npx vite build`. Production builds include source maps (this is an open-source project after all).
 
 ## Postgres
 
