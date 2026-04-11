@@ -1,16 +1,17 @@
 import abc
+import asyncio
+import datetime
 import enum
 import json
-import aiohttp
-from types import TracebackType
-import asyncio
 import logging
-import datetime
-from typing import NamedTuple
-from collections.abc import Awaitable
-from operator import attrgetter
 from collections import deque
+from collections.abc import Awaitable
 from email.utils import parsedate_to_datetime
+from operator import attrgetter
+from types import TracebackType
+from typing import NamedTuple
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ class JSONDict:
     def __enter__(self):
         self._open_file()
         self._data = json.load(self._file)
-        logging.info("Loaded file session")
+        logger.info("Loaded file session")
         return self
 
     def __exit__(self, a, b, c):
@@ -80,11 +81,11 @@ class JSONDict:
             self._file.close()
 
     def _open_file(self):
-        self._file = open(self._filename)
+        self._file = open(self._filename)  # noqa: SIM115
 
     def __setitem__(self, key, value):
         self._data[key] = value
-        logging.info("File session modified: %s => %r", key, value)
+        logger.info("File session modified: %s => %r", key, value)
         self._file.close()
         try:
             with open(self._filename, "w") as f:
@@ -109,7 +110,6 @@ class ABCSession(metaclass=abc.ABCMeta):
         """
         Called with the result of attempting to use the refresh token.
         """
-        pass
 
     @property
     @abc.abstractmethod

@@ -1,15 +1,14 @@
 # Adapted from:
 # https://github.com/AlbertoRFer/Static-ESI-skill-dump/blob/bac96b8297c6828cf2e06b870ebd4fd64b46025c/dump_skills.py
-import sys
-import json
-import asyncio
-import logging
 import argparse
+import asyncio
 import itertools
+import json
+import logging
+import sys
 from collections import deque
 
 from capsuleerapp.esi import PublicESISession
-
 
 DOGMA_REQUIRED_SKILL_IDS = (182, 183, 184, 1285, 1289, 1290)
 DOGMA_REQUIRED_SKILL_LEVELS = (277, 278, 279, 1286, 1287, 1288)
@@ -143,7 +142,7 @@ async def do_work(session):
     old_data = None
     new_data = [groups, skills]
     try:
-        with open("src/skills.json") as f:
+        with open("src/skills.json") as f:  # noqa: ASYNC230
             # put the new dataset through a json dump/load to detupilize
             # for comparisons
             old_data = json.load(f)
@@ -153,7 +152,7 @@ async def do_work(session):
     except FileNotFoundError:
         pass
 
-    with open("src/skills.json", "w") as f:
+    with open("src/skills.json", "w") as f:  # noqa: ASYNC230
         print("Skill data updated", file=sys.stderr)
         json.dump(new_data, fp=f, separators=(",", ":"))
     sys.exit(0)

@@ -1,11 +1,11 @@
 import asyncio
-import logging
 import collections
+import logging
+from typing import Any
 
 import asyncpg
 
-from .types import Character, ABCSession, AccessToken, NoSuchCharacter
-from typing import Any
+from .types import ABCSession, AccessToken, Character, NoSuchCharacter
 
 logger = logging.getLogger(__name__)
 
@@ -186,19 +186,18 @@ class Database:
         return record["id"]
 
     async def set_character_order(self, account_id: int, order: list[int]) -> None:
-        async with self._pool.acquire() as conn:
-            async with conn.transaction():
-                for idx, character_id in enumerate(order):
-                    res = await conn.execute(
-                        "UPDATE character "
-                        "SET display_order=$1 "
-                        "WHERE character_id =$2 AND account_id=$3",
-                        idx,
-                        character_id,
-                        account_id,
-                    )
-                    if res != "UPDATE 1":
-                        raise RuntimeError(res)
+        async with self._pool.acquire() as conn, conn.transaction():
+            for idx, character_id in enumerate(order):
+                res = await conn.execute(
+                    "UPDATE character "
+                    "SET display_order=$1 "
+                    "WHERE character_id =$2 AND account_id=$3",
+                    idx,
+                    character_id,
+                    account_id,
+                )
+                if res != "UPDATE 1":
+                    raise RuntimeError(res)
 
     async def get_characters(
         self, account_id: int
@@ -214,15 +213,14 @@ class Database:
         return [Character(r[0], r[1]) for r in rows], [r[2] for r in rows]
 
     async def delete_character(self, account_id: int, character_id: int) -> None:
-        async with self._pool.acquire() as conn:
-            async with conn.transaction():
-                record = await conn.execute(
-                    "DELETE FROM character WHERE account_id=$1 AND character_id=$2",
-                    account_id,
-                    character_id,
-                )
-                if record != "DELETE 1":
-                    raise Exception(record)
+        async with self._pool.acquire() as conn, conn.transaction():
+            record = await conn.execute(
+                "DELETE FROM character WHERE account_id=$1 AND character_id=$2",
+                account_id,
+                character_id,
+            )
+            if record != "DELETE 1":
+                raise Exception(record)
 
     async def character_authorized(
         self,

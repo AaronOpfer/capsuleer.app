@@ -1,9 +1,9 @@
-import time
 import logging
 import operator
+import time
 
 from .esi import ESISession
-from .types import ItemTypes, ABCSession, AcceleratorInfo
+from .types import ABCSession, AcceleratorInfo, ItemTypes
 
 logger = logging.getLogger(__name__)
 

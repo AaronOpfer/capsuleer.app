@@ -6,7 +6,6 @@ import aiohttp
 from jose import jwt
 from jose.exceptions import JWTError
 
-
 log = logging.getLogger(__name__)
 
 

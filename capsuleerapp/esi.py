@@ -1,24 +1,24 @@
-import enum
-import time
-import random
 import asyncio
-import logging
 import datetime
+import enum
 import functools
+import logging
+import random
+import time
 
 import aiohttp
 
 from .data import forge_npc_station_ids
-from .types import (
-    Response,
-    Character,
-    ABCSession,
-    ESILimiter,
-    AccessToken,
-    RefreshTokenError,
-    CharacterNeedsUpdated,
-)
 from .jwt import EveJWTValidator
+from .types import (
+    ABCSession,
+    AccessToken,
+    Character,
+    CharacterNeedsUpdated,
+    ESILimiter,
+    RefreshTokenError,
+    Response,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -74,24 +74,23 @@ async def request_with_retry(
     """
 
     async def request():
-        async with esilimiter:
-            async with session.get(url, headers=headers, params=params) as resp:
-                if resp.status in RETRY_ERROR_STATUSES:
-                    resp.raise_for_status()
+        async with esilimiter, session.get(url, headers=headers, params=params) as resp:
+            if resp.status in RETRY_ERROR_STATUSES:
+                resp.raise_for_status()
 
-                try:
-                    res = await resp.json()
-                except Exception:
-                    # Attempt to raise a double-stacktrace.
-                    resp.raise_for_status()
-                    raise
-                try:
-                    resp.raise_for_status()
-                except Exception:
-                    logger.error("%s %d: %r", url, resp.status, res)
-                    raise
+            try:
+                res = await resp.json()
+            except Exception:
+                # Attempt to raise a double-stacktrace.
+                resp.raise_for_status()
+                raise
+            try:
+                resp.raise_for_status()
+            except Exception:
+                logger.error("%s %d: %r", url, resp.status, res)
+                raise
 
-                return Response(res, resp)
+            return Response(res, resp)
 
     for attempt in range(3):
         sleep_length = attempt + random.uniform(0.5, 1.5)
@@ -255,7 +254,7 @@ class PublicESISession:
             for item in orders:
                 yield item
             if len(orders) < 1000:
-                logging.info(
+                logger.info(
                     "get_market_orders(%r, %r, %r) made %d requests",
                     region_id,
                     buy_sell,
@@ -426,7 +425,7 @@ class ESISession(PublicESISession):
     async def get_structure_market_orders(self, session, structure_id: int):
         params = {"page": 0}
         if structure_id in self._bad_citadels:
-            logging.debug(
+            logger.debug(
                 "citadel %d is still forbidden, ignoring some more.", structure_id
             )
             return []
@@ -440,14 +439,14 @@ class ESISession(PublicESISession):
                 )
             except aiohttp.ClientResponseError as e:
                 if e.status == 403:
-                    logging.info("citadel %d is forbidden to us", structure_id)
+                    logger.info("citadel %d is forbidden to us", structure_id)
                     self._bad_citadels.add(structure_id)
                     return []
                 raise
 
             orders += page
             if len(page) < 1000:
-                logging.info(
+                logger.info(
                     "get_structure_market_orders(%d) made %d requests",
                     structure_id,
                     params["page"],
@@ -474,7 +473,7 @@ class ESISession(PublicESISession):
             ]
             if order_prices and current_best is None:
                 current_best = order_prices[0]
-            current_best = comparator([current_best, *[p for p in order_prices]])
+            current_best = comparator((current_best, *order_prices))
 
         return current_best
 

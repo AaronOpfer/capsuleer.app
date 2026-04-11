@@ -1,7 +1,8 @@
 import asyncio
-import aiohttp
 import datetime
 import unittest
+
+import aiohttp
 
 from capsuleerapp.types import ESILimiter
 
@@ -18,9 +19,8 @@ class TestESILimiter(unittest.IsolatedAsyncioTestCase):
         barrier = asyncio.Barrier(3)
 
         async def request(x):
-            async with limiter:
-                async with barrier:
-                    return x
+            async with limiter, barrier:
+                return x
 
         result = asyncio.ensure_future(
             asyncio.gather(request(1), request(2), request(3))

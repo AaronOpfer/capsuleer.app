@@ -12,7 +12,36 @@ length_sort = true
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "UP"]
+extend-select = [
+"I"
+, "U"
+, "F"
+, "F401"
+, "UP"
+, "PYI019"
+, "PYI036"
+, "T100"  # no breakpoint(), pdb.set_trace()
+, "ASYNC"  # asyncio antipatterns
+, "DTZ"  # datetime antipatterns
+, "LOG"  # logging
+, "SLOT"  # enforce slots in some kinds of subclasses
+, "PIE"  # prevent some redundant operations
+, "RUF100"  # no unused noqa stanza
+, "C4"  # unnecessary dict() calls
+, "FURB"  # modernization refactorings
+, "PERF"  # performance improvements
+, "G"  # flake8-logging-format
+, "SIM"  # combine multiple with statements
+, "B028"  # warnings should have stacklevel
+]
+ignore = [
+"S101"  # use of assert
+, "SIM300"  # Yoda expressions
+, "SIM105"  # prefer native syntax over contextlib.suppress
+, "SIM108"  # ternary operator can harm readability
+, "SIM102"  # seperate if statements help readability
+, "RUF023"  # sorting __slots__
+]
 
 [tool.pixi.project]
 name = "capsuleerapp"

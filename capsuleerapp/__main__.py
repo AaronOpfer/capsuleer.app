@@ -1,16 +1,16 @@
-import os
-import ast
-import json
-import math
-import time
-import asyncio
-import logging
 import argparse
-import datetime
-import operator
-import functools
-import subprocess
+import ast
+import asyncio
 import configparser
+import datetime
+import functools
+import json
+import logging
+import math
+import operator
+import os
+import subprocess
+import time
 
 import aiohttp
 import aiohttp.web
@@ -19,11 +19,11 @@ from aiohttp.abc import AbstractAccessLogger
 from aiohttp_session import get_session
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 
+from .data import implant_type_id_to_learning_bonus
 from .db import Database
 from .esi import ESISession
-from .data import implant_type_id_to_learning_bonus
-from .types import Character, ItemTypes, NoSuchCharacter, CharacterNeedsUpdated
 from .isk_for_sp import get_isk_for_sp_options
+from .types import Character, CharacterNeedsUpdated, ItemTypes, NoSuchCharacter
 
 logger = logging.getLogger(__name__)
 dumps = functools.partial(json.dumps, separators=(",", ":"))
@@ -329,7 +329,7 @@ class Server:
             biology_implant = 2
 
         headers = {}
-        now = datetime.datetime.now().replace(tzinfo=datetime.UTC)
+        now = datetime.datetime.now(datetime.UTC)
         time_until_expiry = math.floor((earliest_expiry - now).total_seconds())
 
         if time_until_expiry > 0:
@@ -368,7 +368,7 @@ class Server:
                 expires = time.monotonic() + 30 * 60
                 self._cached_skill_trades = expires, data
             except Exception:
-                logging.exception("Error updating skill trade information")
+                logger.exception("Error updating skill trade information")
 
             await asyncio.sleep(60 * 30)
 
@@ -551,7 +551,7 @@ class Server:
                 await runner.setup()
                 site = aiohttp.web.UnixSite(runner, listen_sock_path)
                 await site.start()
-                subprocess.run(["setfacl", "-m", "u:www-data:rwx", listen_sock_path])
+                subprocess.run(["setfacl", "-m", "u:www-data:rwx", listen_sock_path])  # noqa: ASYNC221
                 while True:
                     await task
             finally:
