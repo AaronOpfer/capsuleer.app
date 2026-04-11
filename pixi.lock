@@ -278,7 +278,7 @@ packages:
 - pypi: ./
   name: capsuleerapp
   version: '1'
-  sha256: f85bed0c3639cc7ddb80a5a87a9716e6bce7e3882048eb00af7c1ad53b2ce04c
+  sha256: 3cc8af052ce31b715a2c7ec7b6760376f7d4f28a7810d1d8b58bbe18f12eefc4
   requires_dist:
   - aiohttp-session>2.11,<3
   editable: true

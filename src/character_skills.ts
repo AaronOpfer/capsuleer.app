@@ -42,7 +42,6 @@ export default class CharacterSkills {
     skills: {[id: number]: CharacterSkillItem};
     skill_queue_paused: boolean;
     accelerator_amount: number;
-    implants: number[];
     biology_implant_bonus: number;
 
     constructor(skill_json) {
