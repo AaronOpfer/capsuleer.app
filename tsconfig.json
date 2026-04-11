@@ -1,9 +1,8 @@
 {
     "compilerOptions": {
-        "outDir": "./static/",
         "sourceMap": true,
         "noImplicitAny": false,
-        "module": "es6",
+        "module": "preserve",
         "target": "esnext",
         "jsx": "react",
         "moduleResolution": "bundler",
