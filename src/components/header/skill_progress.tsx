@@ -12,10 +12,10 @@ export class SkillProgress extends React.PureComponent<SkillProgressProps> {
     render() {
         const t = this.props.training;
         if (t === undefined) {
-            return <progress />;
+            return <progress className="skill_progress_loading" value="0" />;
         }
         if (t.skill_id === undefined) {
-            return <progress value="0" />;
+            return <progress className="skill_progress_idle" value="0" />;
         }
         const end = +t.end_date!;
         const start = +t.start_date!;
@@ -37,6 +37,12 @@ export class SkillProgress extends React.PureComponent<SkillProgressProps> {
 
         const incremental_sp_acquired = time_acquired_sp + sp - last_level_sp;
 
-        return <progress max={incremental_sp_required} value={incremental_sp_acquired} />;
+        return (
+            <progress
+                className="skill_progress_active"
+                max={incremental_sp_required}
+                value={incremental_sp_acquired}
+            />
+        );
     }
 }

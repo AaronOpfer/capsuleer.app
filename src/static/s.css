@@ -224,6 +224,28 @@ footer { text-align: center; }
     background-color: var(--skillcat-eh);
 }
 
+.character_select progress::-moz-progress-bar {
+    background-color: var(--skillcat-eh);
+}
+
+.character_select progress.skill_progress_active {
+    border-left: 2px solid var(--skillcat-eh);
+}
+
+.character_select progress.skill_progress_idle {
+    background-image: repeating-linear-gradient(
+        135deg,
+        #1a1a1a 0px,
+        #1a1a1a 6px,
+        #3a3a3a 6px,
+        #3a3a3a 12px
+    );
+}
+
+.character_select progress.skill_progress_loading {
+    background-color: #4a4a4a;
+}
+
 .character_select_hover {
     z-index: 1;
     position: absolute;
