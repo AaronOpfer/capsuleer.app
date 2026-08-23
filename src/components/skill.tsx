@@ -1,5 +1,5 @@
 import {PureComponent, ReactElement, ReactNode} from "preact/compat";
-import {attribute_types, sp_required} from "../misc/sp";
+import {attribute_types, sp_required, AttributePair} from "../misc/sp";
 import {format_duration} from "../misc/formatting";
 
 const single_attribute_doms = {
@@ -43,7 +43,7 @@ interface SkillProps {
     category_id: number;
     name: string;
     rank: number;
-    attribute: number;
+    attribute: AttributePair;
     level: number | undefined;
     sp: number | undefined;
     desired_level: number | undefined;

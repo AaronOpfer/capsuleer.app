@@ -1,5 +1,10 @@
 import {skill_data} from "./static_skill_data";
-import {sp_required, sp_per_minute as attribute_sp_per_minute, Attribute} from "./misc/sp";
+import {
+    sp_required,
+    sp_per_minute as attribute_sp_per_minute,
+    Attribute,
+    AttributePair,
+} from "./misc/sp";
 
 function color_band(color1, color2, weight): string {
     const p = 1 - weight;
@@ -168,8 +173,7 @@ export default class CharacterSkills {
         return skill_data ? skill_data.level : 0;
     }
 
-    sp_per_minute(attr_type: number): number {
-        // FIXME should be an enum
+    sp_per_minute(attr_type: AttributePair): number {
         return attribute_sp_per_minute(this.attributes, attr_type);
         // FIXME Alpha clone check
     }

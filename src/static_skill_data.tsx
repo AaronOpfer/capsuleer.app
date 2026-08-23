@@ -1,4 +1,5 @@
 import skill_data_raw from "./skills.json";
+import {AttributePair} from "./misc/sp";
 
 export interface StaticSkillPrerequisite {
     readonly skillId: number;
@@ -10,7 +11,7 @@ export interface StaticSkill {
     readonly category_id: number;
     readonly name: string;
     readonly rank: number;
-    readonly attribute: number;
+    readonly attribute: AttributePair;
     readonly prerequisites: StaticSkillPrerequisite[];
 }
 

@@ -5,13 +5,13 @@ import {
     calculate_number_of_injectors,
     sp_from_injectors,
     sp_per_minute,
+    AttributePair,
 } from "./sp";
 
 test("sp_per_minute uses primary attribute fully and secondary at half", () => {
-    // attribute_types[10] === "perception/willpower"
-    expect(attribute_types[10]).toBe("perception/willpower");
+    expect(attribute_types[AttributePair.PerceptionWillpower]).toBe("perception/willpower");
     const attributes = [20, 20, 27, 21, 20]; // int, mem, per, wil, cha
-    expect(sp_per_minute(attributes, 10)).toBe(27 + 21 / 2);
+    expect(sp_per_minute(attributes, AttributePair.PerceptionWillpower)).toBe(27 + 21 / 2);
 });
 
 test("attribute_bitmasks matches each attribute_type's primary/secondary pair", () => {

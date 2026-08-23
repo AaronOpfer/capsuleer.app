@@ -1,3 +1,28 @@
+// Which pair of attributes governs a skill's training rate (primary/secondary). Values match
+// the `attribute` field CCP's SDE assigns each skill, as encoded by dump_skills.py.
+export enum AttributePair {
+    IntelligenceMemory = 0,
+    IntelligencePerception = 1,
+    IntelligenceWillpower = 2,
+    IntelligenceCharisma = 3,
+    MemoryIntelligence = 4,
+    MemoryPerception = 5,
+    MemoryWillpower = 6,
+    MemoryCharisma = 7,
+    PerceptionIntelligence = 8,
+    PerceptionMemory = 9,
+    PerceptionWillpower = 10,
+    PerceptionCharisma = 11,
+    WillpowerIntelligence = 12,
+    WillpowerMemory = 13,
+    WillpowerPerception = 14,
+    WillpowerCharisma = 15,
+    CharismaIntelligence = 16,
+    CharismaMemory = 17,
+    CharismaPerception = 18,
+    CharismaWillpower = 19,
+}
+
 export const attribute_types = Object.freeze([
     "intelligence/memory",
     "intelligence/perception",
@@ -54,7 +79,7 @@ export const attribute_indexes = Object.freeze([
     [Attribute.Charisma, Attribute.Willpower],
 ]);
 
-export function sp_per_minute(attributes: number[], attribute_type: number): number {
+export function sp_per_minute(attributes: number[], attribute_type: AttributePair): number {
     const [primary, secondary] = attribute_indexes[attribute_type];
     return attributes[primary] + attributes[secondary] / 2;
 }
