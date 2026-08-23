@@ -50,6 +50,11 @@ export default class CharacterSelect extends React.PureComponent<
         this.setState({hover_position: null});
     };
 
+    on_click = () => {
+        const p = this.props;
+        p.on_click(p.id, p.name, p.valid);
+    };
+
     render() {
         const p = this.props;
         return (
@@ -57,7 +62,7 @@ export default class CharacterSelect extends React.PureComponent<
                 ref={this.ref}
                 onMouseEnter={this.on_mouse_enter}
                 onMouseLeave={this.on_mouse_leave}
-                onClick={() => p.on_click(p.id, p.name, p.valid)}
+                onClick={this.on_click}
                 className={
                     "character_select" +
                     (p.selected ? " selected" : "") +

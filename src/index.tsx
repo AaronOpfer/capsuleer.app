@@ -73,6 +73,10 @@ class Body extends React.Component<BodyProps, BodyState> {
         this.setState({view});
     }
 
+    on_tab_click = (e) => {
+        this.set_view(Number(e.currentTarget.dataset.view));
+    };
+
     async componentDidMount() {
         window.addEventListener("resize", this.on_resize, false);
         await this.load_character_data();
@@ -178,8 +182,9 @@ class Body extends React.Component<BodyProps, BodyState> {
         const tabs = tabData.map((tab) => (
             <div
                 key={tab.label}
+                data-view={tab.view}
                 className={this.state.view == tab.view ? "active" : undefined}
-                onClick={() => this.set_view(tab.view)}
+                onClick={this.on_tab_click}
             >
                 {tab.label}
             </div>
@@ -288,10 +293,14 @@ class AuthenticatedContent extends React.Component<
             this.setState({characters: previous_characters});
             return;
         }
-        await this.componentDidMount();
+        await this.load_characters();
     }
 
     async componentDidMount() {
+        await this.load_characters();
+    }
+
+    async load_characters() {
         let new_state;
         try {
             new_state = {characters: await download_characters()};
@@ -338,9 +347,9 @@ class AuthenticatedContent extends React.Component<
     }
 
     on_toggle_settings = () => {
-        this.setState({
-            settings_open: !this.state.settings_open,
-        });
+        this.setState((prev_state) => ({
+            settings_open: !prev_state.settings_open,
+        }));
     };
 
     render() {

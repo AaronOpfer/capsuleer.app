@@ -11,7 +11,7 @@ import {Settings} from "../md";
 interface HeaderProps {
     characters: CharacterNameAndId[];
     selected: number | null;
-    on_character_select: any;
+    on_character_select: (id: number, name: string, valid: boolean) => void;
     on_toggle_settings: () => void;
 }
 
@@ -27,10 +27,10 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
 
     constructor(props) {
         super(props);
-        this.state = {training_data: {}, current_time: new Date()};
+        const training_data: {[id: number]: CharacterTrainingProgress} = {};
         for (const character of props.characters) {
             if (!character.valid) {
-                this.state.training_data[character.id] = {
+                training_data[character.id] = {
                     character_id: character.id,
                     level: undefined,
                     sp: undefined,
@@ -40,6 +40,7 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
                 };
             }
         }
+        this.state = {training_data, current_time: new Date()};
         this.earliest_end_date = undefined;
         this.timeout = undefined;
         this.hovered = false;
@@ -75,6 +76,15 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
         this.update_time();
     }
 
+    on_mouse_enter = () => {
+        this.hovered = true;
+        this.update_time();
+    };
+
+    on_mouse_leave = () => {
+        this.hovered = false;
+    };
+
     update_time() {
         if (this.timeout !== undefined) {
             this.timeout.cancel();
@@ -98,15 +108,7 @@ export default class Header extends React.PureComponent<HeaderProps, HeaderState
 
     render() {
         return (
-            <header
-                onMouseEnter={() => {
-                    this.hovered = true;
-                    this.update_time();
-                }}
-                onMouseLeave={() => {
-                    this.hovered = false;
-                }}
-            >
+            <header onMouseEnter={this.on_mouse_enter} onMouseLeave={this.on_mouse_leave}>
                 <div>
                     {(this.props.characters || []).map((c) => (
                         <CharacterSelect

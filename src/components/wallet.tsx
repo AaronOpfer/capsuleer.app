@@ -62,8 +62,8 @@ export default class Wallet extends React.Component<WalletProps, WalletState> {
                 </tr>
             );
         } else {
-            entries = this.state.entries.map((e, idx) => (
-                <tr key={idx}>
+            entries = this.state.entries.map((e) => (
+                <tr key={e.date.getTime()}>
                     <td>{e.date.toLocaleString()}</td>
                     <td className={"np"[+(e.amount > 0)]}>{fmt(e.amount)}</td>
                     <td>{fmt(e.balance)}</td>

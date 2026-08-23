@@ -93,6 +93,6 @@ export function format_duration(seconds: number, show_all_figures?: boolean) {
         [s | 0, "s"],
     ]
         .filter((x) => x[0])
-        .reduce((a, [v, l]) => (a += (v as string) + l + " "), "")
+        .reduce((a, [v, l]) => a + (v as string) + l + " ", "")
         .trim();
 }

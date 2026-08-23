@@ -65,7 +65,7 @@ const outline = (
         <polygon style={outline_style} points={get_points_string(max_points)} />
         {max_points.map(([x, y], i) => (
             <line
-                key={i}
+                key={labels[i]}
                 x1={pent_x + pent_size / 2}
                 y1={pent_y + pent_size / 2}
                 x2={x}
