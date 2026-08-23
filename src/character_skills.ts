@@ -1,5 +1,5 @@
 import {skill_data} from "./static_skill_data";
-import {sp_required, attribute_types, attribute_names} from "./misc/sp";
+import {sp_required, sp_per_minute as attribute_sp_per_minute, Attribute} from "./misc/sp";
 
 function color_band(color1, color2, weight): string {
     const p = 1 - weight;
@@ -33,11 +33,10 @@ export default class CharacterSkills {
     total_sp: number;
     unallocated_sp: number;
     wallet_balance: number;
-    intelligence: number;
-    memory: number;
-    perception: number;
-    willpower: number;
-    charisma: number;
+    // Canonical storage for the 5 individual attributes, positioned per the `Attribute` enum.
+    // `.intelligence`/`.memory`/etc. below are read-only views over this array, not separate
+    // storage, so the two can never drift out of sync with each other.
+    attributes: number[];
     skill_queue: CharacterSkillQueueItem[];
     skills: {[id: number]: CharacterSkillItem};
     skill_queue_paused: boolean;
@@ -59,8 +58,7 @@ export default class CharacterSkills {
         const implant_bonuses = skill_json[7];
         const unboosted_attributes = current_attributes.map((v, i) => v - implant_bonuses[i]);
         this.accelerator_amount = (unboosted_attributes.reduce((a, b) => a + b, 0) - 99) / 5;
-        [this.intelligence, this.memory, this.perception, this.willpower, this.charisma] =
-            current_attributes.map((x) => x - this.accelerator_amount);
+        this.attributes = current_attributes.map((x) => x - this.accelerator_amount);
         this.wallet_balance = skill_json[4];
         this.unallocated_sp = skill_json[8] || 0;
         this.biology_implant_bonus = {0: 1, 1: 1.05, 2: 1.1}[skill_json[9]];
@@ -89,6 +87,26 @@ export default class CharacterSkills {
             }));
         }
         this.update();
+    }
+
+    get intelligence(): number {
+        return this.attributes[Attribute.Intelligence];
+    }
+
+    get memory(): number {
+        return this.attributes[Attribute.Memory];
+    }
+
+    get perception(): number {
+        return this.attributes[Attribute.Perception];
+    }
+
+    get willpower(): number {
+        return this.attributes[Attribute.Willpower];
+    }
+
+    get charisma(): number {
+        return this.attributes[Attribute.Charisma];
     }
 
     skill_training_duration(skill_id: number, level: number) {
@@ -152,8 +170,7 @@ export default class CharacterSkills {
 
     sp_per_minute(attr_type: number): number {
         // FIXME should be an enum
-        const [primary, secondary] = attribute_types[attr_type].split("/");
-        return this[primary] + this[secondary] / 2;
+        return attribute_sp_per_minute(this.attributes, attr_type);
         // FIXME Alpha clone check
     }
 
@@ -161,9 +178,15 @@ export default class CharacterSkills {
         const lowest_possible = 17;
         const highest_possible = 32;
         const highest_accel_possible = 32 + 12;
-        return attribute_names
-            .map((attr) => {
-                const value = this[attr];
+        const attributes: [string, number][] = [
+            ["intelligence", this.intelligence],
+            ["memory", this.memory],
+            ["perception", this.perception],
+            ["willpower", this.willpower],
+            ["charisma", this.charisma],
+        ];
+        return attributes
+            .map(([attr, value]) => {
                 let color;
                 if (value <= highest_possible) {
                     color = color_band(

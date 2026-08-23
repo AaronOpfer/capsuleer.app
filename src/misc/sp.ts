@@ -1,11 +1,3 @@
-export const attribute_names = Object.freeze([
-    "intelligence",
-    "memory",
-    "perception",
-    "willpower",
-    "charisma",
-]);
-
 export const attribute_types = Object.freeze([
     "intelligence/memory",
     "intelligence/perception",
@@ -29,27 +21,37 @@ export const attribute_types = Object.freeze([
     "charisma/willpower",
 ]);
 
+// Position of each individual attribute within an `attributes: number[]` tuple, as used
+// throughout this module and by CharacterSkills.attributes.
+export enum Attribute {
+    Intelligence = 0,
+    Memory = 1,
+    Perception = 2,
+    Willpower = 3,
+    Charisma = 4,
+}
+
 export const attribute_indexes = Object.freeze([
-    [0, 1],
-    [0, 2],
-    [0, 3],
-    [0, 4],
-    [1, 0],
-    [1, 2],
-    [1, 3],
-    [1, 4],
-    [2, 0],
-    [2, 1],
-    [2, 3],
-    [2, 4],
-    [3, 0],
-    [3, 1],
-    [3, 2],
-    [3, 4],
-    [4, 0],
-    [4, 1],
-    [4, 2],
-    [4, 3],
+    [Attribute.Intelligence, Attribute.Memory],
+    [Attribute.Intelligence, Attribute.Perception],
+    [Attribute.Intelligence, Attribute.Willpower],
+    [Attribute.Intelligence, Attribute.Charisma],
+    [Attribute.Memory, Attribute.Intelligence],
+    [Attribute.Memory, Attribute.Perception],
+    [Attribute.Memory, Attribute.Willpower],
+    [Attribute.Memory, Attribute.Charisma],
+    [Attribute.Perception, Attribute.Intelligence],
+    [Attribute.Perception, Attribute.Memory],
+    [Attribute.Perception, Attribute.Willpower],
+    [Attribute.Perception, Attribute.Charisma],
+    [Attribute.Willpower, Attribute.Intelligence],
+    [Attribute.Willpower, Attribute.Memory],
+    [Attribute.Willpower, Attribute.Perception],
+    [Attribute.Willpower, Attribute.Charisma],
+    [Attribute.Charisma, Attribute.Intelligence],
+    [Attribute.Charisma, Attribute.Memory],
+    [Attribute.Charisma, Attribute.Perception],
+    [Attribute.Charisma, Attribute.Willpower],
 ]);
 
 export function sp_per_minute(attributes: number[], attribute_type: number): number {
