@@ -1,4 +1,4 @@
-import React from "react";
+import {PureComponent} from "preact/compat";
 import {CharacterTrainingProgress} from "../../server";
 import {skill_data} from "../../static_skill_data";
 import {sp_required} from "../../misc/sp";
@@ -8,7 +8,7 @@ export interface SkillProgressProps {
     current_time: Date;
 }
 
-export class SkillProgress extends React.PureComponent<SkillProgressProps> {
+export class SkillProgress extends PureComponent<SkillProgressProps> {
     render() {
         const t = this.props.training;
         if (t === undefined) {

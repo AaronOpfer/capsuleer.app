@@ -1,8 +1,8 @@
 "use strict";
 
 import "./static/s.css";
-import React from "react";
-import {createRoot} from "react-dom/client";
+import {Component, StrictMode} from "preact/compat";
+import {createRoot} from "preact/compat/client";
 import {character_url} from "./misc/urls";
 import {setTimeoutWithVisibility, TimeoutHandle} from "./misc/visibilitytimeout";
 import CharacterSkills from "./character_skills";
@@ -45,7 +45,7 @@ interface BodyState {
     split_view: boolean;
 }
 
-class Body extends React.Component<BodyProps, BodyState> {
+class Body extends Component<BodyProps, BodyState> {
     update_interval: ReturnType<typeof setInterval> | null;
     refresh_timeout: TimeoutHandle | null;
 
@@ -229,7 +229,7 @@ interface AuthenticatedContentState {
     settings_open: boolean;
 }
 
-class AuthenticatedContent extends React.Component<
+class AuthenticatedContent extends Component<
     Record<string, never>,
     AuthenticatedContentState
 > {
@@ -405,7 +405,7 @@ interface ApplicationState {
     show_error: boolean;
 }
 
-class Application extends React.Component<Record<string, never>, ApplicationState> {
+class Application extends Component<Record<string, never>, ApplicationState> {
     constructor(props) {
         super(props);
         window.show_login = this.show_login = this.show_login.bind(this);
@@ -454,9 +454,9 @@ function render() {
     const container = document.querySelector("#app");
     const root = createRoot(container!);
     root.render(
-        <React.StrictMode>
+        <StrictMode>
             <Application />
-        </React.StrictMode>,
+        </StrictMode>,
     );
 }
 

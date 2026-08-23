@@ -1,4 +1,4 @@
-import React from "react";
+import {CSSProperties, PropsWithChildren, PureComponent} from "preact/compat";
 
 interface RadarProps {
     intelligence: number;
@@ -49,7 +49,7 @@ function get_points_string(values) {
 
 const max_points = get_point_values([1, 1, 1, 1, 1]);
 const label_points = get_point_values([1.05, 1.2, 1.2, 1.2, 1.2]);
-const text_style: React.CSSProperties = {
+const text_style: CSSProperties = {
     fill: "#fff",
     textAnchor: "middle",
     fontSize: "26px",
@@ -81,8 +81,8 @@ const outline = (
     </g>
 );
 
-export class RadarOutline extends React.PureComponent<
-    React.PropsWithChildren<Record<never, never>>
+export class RadarOutline extends PureComponent<
+    PropsWithChildren<Record<never, never>>
 > {
     render() {
         return (
@@ -101,7 +101,7 @@ export class RadarOutline extends React.PureComponent<
     }
 }
 
-export class Radar extends React.PureComponent<RadarProps> {
+export class Radar extends PureComponent<RadarProps> {
     render() {
         const props = this.props;
         const attr_points = get_point_values(

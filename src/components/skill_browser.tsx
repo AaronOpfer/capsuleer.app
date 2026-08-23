@@ -1,4 +1,4 @@
-import React from "react";
+import {Component, Fragment, PureComponent} from "preact/compat";
 import CharacterSkills from "../character_skills";
 import {StaticSkill, skill_data} from "../static_skill_data";
 import {attribute_types, sp_required} from "../misc/sp";
@@ -35,7 +35,7 @@ interface FocusedSkillState {
     description: string | null;
 }
 
-class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState> {
+class FocusedSkill extends Component<FocusedSkillProps, FocusedSkillState> {
     constructor(props) {
         super(props);
         this.state = {description: null};
@@ -141,7 +141,7 @@ class FocusedSkill extends React.Component<FocusedSkillProps, FocusedSkillState>
     }
 }
 
-class SkillCategory extends React.PureComponent<SkillCategoryProps, Record<string, never>> {
+class SkillCategory extends PureComponent<SkillCategoryProps, Record<string, never>> {
     on_click = () => {
         this.props.on_category_click(this.props.id);
     };
@@ -165,7 +165,7 @@ interface SkillCategoriesProps {
     active_category: number | null;
 }
 
-class SkillCategories extends React.PureComponent<SkillCategoriesProps, Record<string, never>> {
+class SkillCategories extends PureComponent<SkillCategoriesProps, Record<string, never>> {
     render() {
         const children = skill_data.categories.map((category) => {
             return (
@@ -194,7 +194,7 @@ interface SkillsState {
     focused_skill: number | null;
 }
 
-class Skills extends React.Component<SkillsProps, SkillsState> {
+class Skills extends Component<SkillsProps, SkillsState> {
     constructor(props) {
         super(props);
         this.state = {focused_skill: null};
@@ -233,7 +233,7 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
     render() {
         if (this.state.focused_skill !== null) {
             return (
-                <React.Fragment>
+                <Fragment>
                     <FocusedSkill
                         skill_id={this.state.focused_skill}
                         onClose={this.on_focus_close}
@@ -246,7 +246,7 @@ class Skills extends React.Component<SkillsProps, SkillsState> {
                         skill={skill_data.skill(this.state.focused_skill)}
                         skillComponentRenderer={this.render_skill}
                     />
-                </React.Fragment>
+                </Fragment>
             );
         }
         if (!this.props.skills) {
@@ -295,7 +295,7 @@ interface SkillBrowserState {
     category_id: number | null;
 }
 
-export default class SkillBrowser extends React.PureComponent<
+export default class SkillBrowser extends PureComponent<
     SkillBrowserProps,
     SkillBrowserState
 > {

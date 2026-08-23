@@ -1,12 +1,12 @@
-import React from "react";
+import {Component, JSX} from "preact/compat";
 import {StaticSkill, skill_data} from "../static_skill_data";
 
 interface SkillRequirementTreeProps {
     skill: StaticSkill;
-    skillComponentRenderer: (skill: StaticSkill, desiredLevel: number) => React.JSX.Element;
+    skillComponentRenderer: (skill: StaticSkill, desiredLevel: number) => JSX.Element;
 }
 
-export default class SkillRequirementTree extends React.Component<
+export default class SkillRequirementTree extends Component<
     SkillRequirementTreeProps,
     Record<string, never>
 > {
@@ -24,11 +24,11 @@ export default class SkillRequirementTree extends React.Component<
 
 interface SkillRequirementTreeNodeProps {
     skill: StaticSkill;
-    skillComponentRenderer: (skill: StaticSkill, desiredLevel: number) => React.JSX.Element;
+    skillComponentRenderer: (skill: StaticSkill, desiredLevel: number) => JSX.Element;
     level: number;
 }
 
-class SkillRequirementTreeNode extends React.Component<
+class SkillRequirementTreeNode extends Component<
     SkillRequirementTreeNodeProps,
     Record<string, never>
 > {

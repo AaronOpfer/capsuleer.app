@@ -1,4 +1,4 @@
-import React from "react";
+import {PureComponent, ReactElement, ReactNode} from "preact/compat";
 import {attribute_types, sp_required} from "../misc/sp";
 import {format_duration} from "../misc/formatting";
 
@@ -30,7 +30,7 @@ const single_attribute_doms = {
     ),
 };
 
-const attribute_doms: {[attribute: number]: React.ReactNode[]} = {};
+const attribute_doms: {[attribute: number]: ReactNode[]} = {};
 attribute_types.forEach((value, key) => {
     attribute_doms[key] = value.split("/").map((v) => single_attribute_doms[v]);
 });
@@ -49,7 +49,7 @@ interface SkillProps {
     desired_level: number | undefined;
 }
 
-export default class Skill extends React.PureComponent<SkillProps, Record<string, never>> {
+export default class Skill extends PureComponent<SkillProps, Record<string, never>> {
     on_click = () => {
         this.props.on_skill_click(this.props.id);
     };
@@ -66,7 +66,7 @@ export default class Skill extends React.PureComponent<SkillProps, Record<string
 
         const desired_level = props.desired_level ? props.desired_level : next_level;
 
-        let skill_time: React.ReactElement | null = null;
+        let skill_time: ReactElement | null = null;
         if (props.sp_min && desired_level < 6) {
             const sp_needed_to_reach_desired =
                 sp_required(desired_level, props.rank) - (props.sp || 0);

@@ -1,4 +1,4 @@
-import React from "react";
+import {Component} from "preact/compat";
 import CharacterSkills from "../character_skills";
 import {StaticSkill, skill_data} from "../static_skill_data";
 import {sp_required} from "../misc/sp";
@@ -9,7 +9,7 @@ interface SkillCostsForCharacterProps {
     char_skills: CharacterSkills | null;
 }
 
-export default class SkillCostsForCharacter extends React.Component<
+export default class SkillCostsForCharacter extends Component<
     SkillCostsForCharacterProps,
     Record<string, never>
 > {

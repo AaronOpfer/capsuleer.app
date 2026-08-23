@@ -1,7 +1,7 @@
-import React from "react";
+import {PureComponent} from "preact/compat";
 import phonePng from "../static/phone.png";
 
-export default class LoginForm extends React.PureComponent<
+export default class LoginForm extends PureComponent<
     Record<string, never>,
     Record<string, never>
 > {

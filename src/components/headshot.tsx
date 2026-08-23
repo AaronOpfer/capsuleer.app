@@ -1,11 +1,11 @@
-import React from "react";
+import {PureComponent} from "preact/compat";
 import {character_url} from "../misc/urls";
 
 interface HeadshotProps {
     id: number;
 }
 
-export default class Headshot extends React.PureComponent<HeadshotProps> {
+export default class Headshot extends PureComponent<HeadshotProps> {
     render() {
         const id = this.props.id;
         return (

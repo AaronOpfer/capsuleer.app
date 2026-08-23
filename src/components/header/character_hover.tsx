@@ -1,9 +1,9 @@
-import React from "react";
+import {PureComponent} from "preact/compat";
 import {skill_data} from "../../static_skill_data";
 import {format_duration} from "../../misc/formatting";
 import {CharacterSelectProps} from "./character_select";
 
-export class CharacterHover extends React.PureComponent<
+export class CharacterHover extends PureComponent<
     CharacterSelectProps & {hover_position: number},
     Record<string, never>
 > {

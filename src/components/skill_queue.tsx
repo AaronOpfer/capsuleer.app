@@ -1,4 +1,4 @@
-import React from "react";
+import {Component, Fragment, PureComponent} from "preact/compat";
 import {skill_data} from "../static_skill_data";
 import {format_duration} from "../misc/formatting";
 import CharacterSkills from "../character_skills";
@@ -15,7 +15,7 @@ interface DurationProps {
     show_seconds?: boolean;
 }
 
-class Duration extends React.PureComponent<DurationProps, Record<string, never>> {
+class Duration extends PureComponent<DurationProps, Record<string, never>> {
     render() {
         const {target_date, duration, className} = this.props;
         return (
@@ -33,7 +33,7 @@ interface SkillQueueProps {
     data: CharacterSkills | null;
 }
 
-export default class SkillQueue extends React.Component<SkillQueueProps, Record<string, never>> {
+export default class SkillQueue extends Component<SkillQueueProps, Record<string, never>> {
     render() {
         const data = this.props.data;
         if (data == null) {
@@ -85,7 +85,7 @@ export default class SkillQueue extends React.Component<SkillQueueProps, Record<
             offset += duration_as_percentage;
 
             return (
-                <React.Fragment key={`${queue_item.id}_${queue_item.level}`}>
+                <Fragment key={`${queue_item.id}_${queue_item.level}`}>
                     <SkillQueueItem
                         {...skill}
                         level={queue_item.level}
@@ -99,7 +99,7 @@ export default class SkillQueue extends React.Component<SkillQueueProps, Record<
                         injectable_width={injectable_duration_as_percentage}
                         overall_width={duration_as_percentage}
                     />
-                </React.Fragment>
+                </Fragment>
             );
         });
         const new_sp = Math.round(data.total_sp + sp_costs);
@@ -158,7 +158,7 @@ interface SkillQueueDurationBarProps {
     overall_width: number;
 }
 
-class SkillQueueDurationBar extends React.PureComponent<
+class SkillQueueDurationBar extends PureComponent<
     SkillQueueDurationBarProps,
     Record<string, never>
 > {
@@ -187,7 +187,7 @@ class SkillQueueDurationBar extends React.PureComponent<
             );
         } else {
             return (
-                <React.Fragment>
+                <Fragment>
                     <div
                         className="skill_queue_duration_bar_injectable"
                         style={{
@@ -202,7 +202,7 @@ class SkillQueueDurationBar extends React.PureComponent<
                             width: `${props.overall_width - props.injectable_width}%`,
                         }}
                     />
-                </React.Fragment>
+                </Fragment>
             );
         }
     }
@@ -218,7 +218,7 @@ interface SkillQueueItemProps {
     index: number;
 }
 
-class SkillQueueItem extends React.PureComponent<SkillQueueItemProps, Record<string, never>> {
+class SkillQueueItem extends PureComponent<SkillQueueItemProps, Record<string, never>> {
     render() {
         const props = this.props;
         return (

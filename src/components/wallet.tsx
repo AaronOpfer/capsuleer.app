@@ -1,4 +1,4 @@
-import React from "react";
+import {Component} from "preact/compat";
 import {format_with_decimals} from "../misc/formatting";
 import {download_wallet, WalletEntry} from "../server";
 
@@ -13,7 +13,7 @@ interface WalletState {
 
 const fmt = (x) => format_with_decimals(x, 0);
 
-export default class Wallet extends React.Component<WalletProps, WalletState> {
+export default class Wallet extends Component<WalletProps, WalletState> {
     constructor(props) {
         super(props);
         this.state = {

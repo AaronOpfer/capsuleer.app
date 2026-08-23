@@ -1,6 +1,6 @@
 "use strict";
 
-import React from "react";
+import {Component, PureComponent} from "preact/compat";
 import {MoveUp, MoveDown, PersonAdd, PersonRemove} from "./md";
 import Headshot from "./headshot";
 import {CharacterNameAndId} from "../server";
@@ -16,7 +16,7 @@ interface SettingsCharacterProps {
     on_request_delete: (character_name: string) => void;
 }
 
-class SettingsCharacter extends React.Component<SettingsCharacterProps> {
+class SettingsCharacter extends Component<SettingsCharacterProps> {
     _moveup = () => {
         this.props.on_request_move(Direction.Up, this.props.character.id);
     };
@@ -48,7 +48,7 @@ interface SettingsProps {
     on_request_delete: (character_name: string) => void;
 }
 
-export default class Settings extends React.PureComponent<SettingsProps> {
+export default class Settings extends PureComponent<SettingsProps> {
     move_character = (direction: Direction, character_id: number) => {
         if (this.props.characters === null) return;
         const order = this.props.characters.map((c) => c.id);

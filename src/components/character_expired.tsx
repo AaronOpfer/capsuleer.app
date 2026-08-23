@@ -1,11 +1,11 @@
-import React from "react";
+import {MouseEvent, PureComponent} from "preact/compat";
 
 interface CharacterExpiredProps {
     character_name: string;
     on_delete_click: (character_name: string) => void;
 }
 
-export default class CharacterExpired extends React.PureComponent<
+export default class CharacterExpired extends PureComponent<
     CharacterExpiredProps,
     Record<string, never>
 > {
@@ -14,7 +14,7 @@ export default class CharacterExpired extends React.PureComponent<
         this.on_click = this.on_click.bind(this);
     }
 
-    on_click(e: React.MouseEvent) {
+    on_click(e: MouseEvent<HTMLAnchorElement>) {
         this.props.on_delete_click(this.props.character_name);
         e.preventDefault();
     }

@@ -1,4 +1,4 @@
-import React from "react";
+import {PureComponent} from "preact/compat";
 import CharacterSelect from "./character_select";
 import {setTimeoutWithVisibility, TimeoutHandle} from "../../misc/visibilitytimeout";
 import {
@@ -20,7 +20,7 @@ interface HeaderState {
     current_time: Date;
 }
 
-export default class Header extends React.PureComponent<HeaderProps, HeaderState> {
+export default class Header extends PureComponent<HeaderProps, HeaderState> {
     earliest_end_date: Date | undefined;
     timeout: TimeoutHandle | undefined;
     hovered: boolean;

@@ -1,6 +1,6 @@
-import React from "react";
+import {PureComponent, SVGProps} from "preact/compat";
 
-export class Settings extends React.PureComponent<React.SVGProps<SVGSVGElement>> {
+export class Settings extends PureComponent<SVGProps<SVGSVGElement>> {
     render() {
         // Material Design.
         // https://fonts.google.com/icons
@@ -20,7 +20,7 @@ export class Settings extends React.PureComponent<React.SVGProps<SVGSVGElement>>
     }
 }
 
-export class MoveUp extends React.PureComponent<React.SVGProps<SVGSVGElement>> {
+export class MoveUp extends PureComponent<SVGProps<SVGSVGElement>> {
     // Material Design.
     // https://fonts.google.com/icons
     render() {
@@ -40,7 +40,7 @@ export class MoveUp extends React.PureComponent<React.SVGProps<SVGSVGElement>> {
     }
 }
 
-export class MoveDown extends React.PureComponent<React.SVGProps<SVGSVGElement>> {
+export class MoveDown extends PureComponent<SVGProps<SVGSVGElement>> {
     // Material Design.
     // https://fonts.google.com/icons
     render() {
@@ -60,7 +60,7 @@ export class MoveDown extends React.PureComponent<React.SVGProps<SVGSVGElement>>
     }
 }
 
-export class PersonAdd extends React.PureComponent<React.SVGProps<SVGSVGElement>> {
+export class PersonAdd extends PureComponent<SVGProps<SVGSVGElement>> {
     render() {
         return (
             <svg
@@ -78,7 +78,7 @@ export class PersonAdd extends React.PureComponent<React.SVGProps<SVGSVGElement>
     }
 }
 
-export class PersonRemove extends React.PureComponent<React.SVGProps<SVGSVGElement>> {
+export class PersonRemove extends PureComponent<SVGProps<SVGSVGElement>> {
     render() {
         return (
             <svg

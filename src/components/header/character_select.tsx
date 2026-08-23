@@ -1,4 +1,4 @@
-import React from "react";
+import {PureComponent, RefObject, createRef} from "preact/compat";
 import {CharacterTrainingProgress} from "../../server";
 import {CharacterHover} from "./character_hover";
 import {SkillProgress} from "./skill_progress";
@@ -18,16 +18,16 @@ interface CharacterSelectState {
     hover_position: number | null; // negative means pin to the right
 }
 
-export default class CharacterSelect extends React.PureComponent<
+export default class CharacterSelect extends PureComponent<
     CharacterSelectProps,
     CharacterSelectState
 > {
-    ref: React.RefObject<HTMLDivElement | null>;
+    ref: RefObject<HTMLDivElement>;
 
     constructor(props) {
         super(props);
         this.state = {hover_position: null};
-        this.ref = React.createRef<HTMLDivElement | null>();
+        this.ref = createRef<HTMLDivElement>();
     }
 
     on_mouse_enter = () => {

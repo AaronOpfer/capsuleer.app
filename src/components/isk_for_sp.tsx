@@ -1,4 +1,4 @@
-import React from "react";
+import {JSX, PureComponent} from "preact/compat";
 import {format_with_decimals, get_formatter} from "../misc/formatting";
 import {TimeoutHandle, setTimeoutWithVisibility} from "../misc/visibilitytimeout";
 
@@ -12,7 +12,7 @@ interface ISKForSPPanelItemProps {
     sp_day: number | null;
 }
 
-class ISKForSPPanelItem extends React.PureComponent<ISKForSPPanelItemProps, Record<string, never>> {
+class ISKForSPPanelItem extends PureComponent<ISKForSPPanelItemProps, Record<string, never>> {
     render() {
         const s = this.props;
         return (
@@ -68,7 +68,7 @@ interface ISKForSPItemData {
 }
 
 // This is kind of lying; it's not a pure component if it downloads data with fetch()
-export default class ISKForSPPanel extends React.PureComponent<
+export default class ISKForSPPanel extends PureComponent<
     ISKForSPPanelProps,
     ISKForSPPanelState
 > {
@@ -238,7 +238,7 @@ export default class ISKForSPPanel extends React.PureComponent<
             <ISKForSPPanelItem formatter={formatter} key={s.type_id} {...s} />
         ));
 
-        const extra_controls: React.JSX.Element[] = [];
+        const extra_controls: JSX.Element[] = [];
         if (this.props.millions_of_sp != null && state.accelerators.length) {
             if (this.props.biology_implant_multiplier != 1.1) {
                 extra_controls.push(
