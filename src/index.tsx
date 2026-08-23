@@ -229,10 +229,7 @@ interface AuthenticatedContentState {
     settings_open: boolean;
 }
 
-class AuthenticatedContent extends Component<
-    Record<string, never>,
-    AuthenticatedContentState
-> {
+class AuthenticatedContent extends Component<Record<string, never>, AuthenticatedContentState> {
     constructor(props) {
         super(props);
         this.state = {

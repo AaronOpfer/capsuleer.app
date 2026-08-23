@@ -1,9 +1,40 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
-    rev: v0.6.2
+  - repo: local
     hooks:
-      # Run the linter.
-      - id: ruff
-      # Run the formatter.
+      - id: ruff-check
+        name: ruff check
+        entry: pixi run --locked ruff check --fix
+        language: system
+        types: [python]
+
       - id: ruff-format
+        name: ruff format
+        entry: pixi run --locked ruff format
+        language: system
+        types: [python]
+
+      - id: npm-ci
+        name: npm ci (verify lockfile sync)
+        entry: pixi run --locked npm ci
+        language: system
+        files: (package(-lock)?\.json|\.tsx?)$
+        pass_filenames: false
+
+      - id: eslint
+        name: eslint
+        entry: pixi run --locked npx eslint --fix
+        language: system
+        files: \.tsx?$
+
+      - id: prettier
+        name: prettier
+        entry: pixi run --locked npx prettier --write
+        language: system
+        files: \.tsx?$
+
+      - id: tsc
+        name: tsc --noEmit
+        entry: pixi run --locked npx tsc --noEmit
+        language: system
+        files: \.tsx?$
+        pass_filenames: false

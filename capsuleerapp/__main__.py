@@ -193,7 +193,7 @@ class Server:
             account_id = await get_account_id(request)
             if account_id == self._internal_account_id:
                 scopes.append("esi-markets.structure_markets.v1")
-        except Exception:
+        except aiohttp.web.HTTPUnauthorized:
             pass
         session = await get_session(request)
         session["state"] = int.from_bytes(os.urandom(8), "little")
@@ -355,7 +355,7 @@ class Server:
     async def _skill_trade_task(self):
         while True:
             try:
-                characters, validity = await self.db.get_characters(
+                characters, _validity = await self.db.get_characters(
                     self._internal_account_id
                 )
                 if not characters:
@@ -551,7 +551,9 @@ class Server:
                 await runner.setup()
                 site = aiohttp.web.UnixSite(runner, listen_sock_path)
                 await site.start()
-                subprocess.run(["setfacl", "-m", "u:www-data:rwx", listen_sock_path])  # noqa: ASYNC221
+                subprocess.run(  # noqa: ASYNC221
+                    ["setfacl", "-m", "u:www-data:rwx", listen_sock_path], check=True
+                )
                 while True:
                     await task
             finally:

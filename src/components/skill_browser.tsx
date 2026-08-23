@@ -295,10 +295,7 @@ interface SkillBrowserState {
     category_id: number | null;
 }
 
-export default class SkillBrowser extends PureComponent<
-    SkillBrowserProps,
-    SkillBrowserState
-> {
+export default class SkillBrowser extends PureComponent<SkillBrowserProps, SkillBrowserState> {
     constructor(props) {
         super(props);
         this.state = {

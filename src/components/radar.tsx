@@ -81,9 +81,7 @@ const outline = (
     </g>
 );
 
-export class RadarOutline extends PureComponent<
-    PropsWithChildren<Record<never, never>>
-> {
+export class RadarOutline extends PureComponent<PropsWithChildren<Record<never, never>>> {
     render() {
         return (
             <svg

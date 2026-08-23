@@ -1,10 +1,7 @@
 import {PureComponent} from "preact/compat";
 import phonePng from "../static/phone.png";
 
-export default class LoginForm extends PureComponent<
-    Record<string, never>,
-    Record<string, never>
-> {
+export default class LoginForm extends PureComponent<Record<string, never>, Record<string, never>> {
     render() {
         return (
             <div className="login">

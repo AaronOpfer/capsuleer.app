@@ -68,10 +68,7 @@ interface ISKForSPItemData {
 }
 
 // This is kind of lying; it's not a pure component if it downloads data with fetch()
-export default class ISKForSPPanel extends PureComponent<
-    ISKForSPPanelProps,
-    ISKForSPPanelState
-> {
+export default class ISKForSPPanel extends PureComponent<ISKForSPPanelProps, ISKForSPPanelState> {
     _timeoutHandle: TimeoutHandle | null;
 
     constructor(props) {

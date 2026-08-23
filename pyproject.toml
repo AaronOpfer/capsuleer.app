@@ -41,6 +41,7 @@ ignore = [
 , "SIM108"  # ternary operator can harm readability
 , "SIM102"  # seperate if statements help readability
 , "RUF023"  # sorting __slots__
+, "TRY002"  # create your own exception
 ]
 
 [tool.pixi.workspace]
