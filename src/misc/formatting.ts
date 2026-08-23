@@ -50,6 +50,8 @@ export function format_with_decimals(num: number, dec: number): string {
 }
 
 export function format_duration(seconds: number, show_all_figures?: boolean) {
+    const negative = seconds < 0;
+    seconds = Math.abs(seconds);
     let d = Math.floor(seconds / 86400);
     let h = Math.floor((seconds % 86400) / 3600);
     let m = Math.floor(((seconds % 86400) % 3600) / 60);
@@ -86,7 +88,7 @@ export function format_duration(seconds: number, show_all_figures?: boolean) {
             s = 0;
         }
     }
-    return [
+    const formatted = [
         [d, "d"],
         [h, "h"],
         [m, "m"],
@@ -95,4 +97,5 @@ export function format_duration(seconds: number, show_all_figures?: boolean) {
         .filter((x) => x[0])
         .reduce((a, [v, l]) => a + (v as string) + l + " ", "")
         .trim();
+    return negative && formatted ? "-" + formatted : formatted;
 }
