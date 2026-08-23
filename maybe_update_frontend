@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+cd $(dirname $0)
+eval "$(~/.pixi/bin/pixi shell-hook)"
+
+if PYTHONPATH=. python -m capsuleerapp.offline.dump_skills http://127.127.127.127:12722; then
+    npx vite build
+fi
