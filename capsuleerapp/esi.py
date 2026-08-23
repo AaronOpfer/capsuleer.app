@@ -22,6 +22,8 @@ from .types import (
 
 logger = logging.getLogger(__name__)
 
+ESI_COMPATIBILITY_DATE = "2026-08-22"
+
 
 def _requires_session(f):
     async def wrapper(self, session, *args, **kwargs):
@@ -58,6 +60,7 @@ class SessionType(enum.Enum):
 
 
 RETRY_ERROR_STATUSES = frozenset({502, 503, 504})
+RATE_LIMIT_STATUS = 429
 
 
 async def request_with_retry(
@@ -75,7 +78,7 @@ async def request_with_retry(
 
     async def request():
         async with esilimiter, session.get(url, headers=headers, params=params) as resp:
-            if resp.status in RETRY_ERROR_STATUSES:
+            if resp.status in RETRY_ERROR_STATUSES or resp.status == RATE_LIMIT_STATUS:
                 resp.raise_for_status()
 
             try:
@@ -97,10 +100,15 @@ async def request_with_retry(
         try:
             return await request()
         except aiohttp.ClientResponseError as exc:
-            if exc.status not in RETRY_ERROR_STATUSES:
+            if exc.status == RATE_LIMIT_STATUS:
+                try:
+                    sleep_length = max(sleep_length, float(exc.headers["Retry-After"]))
+                except (KeyError, TypeError, ValueError):
+                    pass
+            elif exc.status not in RETRY_ERROR_STATUSES:
                 raise
             logger.warning(
-                "GET %s hit %d, sleeping for %d and trying again",
+                "GET %s hit %d, sleeping for %.1f and trying again",
                 url,
                 exc.status,
                 sleep_length,
@@ -119,7 +127,6 @@ async def request_with_retry(
 
 
 def _esi(
-    version: int,
     url_format: str,
     name: str,
     session_type: SessionType = SessionType.none,
@@ -127,11 +134,9 @@ def _esi(
 ):
     if accepts_params is not True and accepts_params is not False:
         raise TypeError("accepts_params must be a boolean")
-    if type(version) is not int:
-        raise TypeError("version must be an integer")
 
     accepted_arg_count = len(url_format.split("{}")) - 1
-    url_format_func = (f"/v{version}/" + url_format).format
+    url_format_func = ("/" + url_format).format
 
     if session_type is SessionType.headers:
         accepted_arg_count += 1  # takes a hidden session argument
@@ -190,6 +195,7 @@ class PublicESISession:
             "User-Agent": "capsuleer.app me@aaronopfer.com",
             "Accept": "application/json",
             "Host": "esi.evetech.net",
+            "X-Compatibility-Date": ESI_COMPATIBILITY_DATE,
         }
         self._esilimiter = ESILimiter()
 
@@ -284,14 +290,14 @@ class PublicESISession:
         return result
 
     # fmt: off
-    get_type_information = _esi(3, "universe/types/{}", "get_type_information")
-    get_region_information = _esi(1, "universe/regions/{}", "get_region_information")
-    get_constellation_information = _esi(1, "universe/constellations/{}", "get_constellation_information")
-    get_system_information = _esi(4, "universe/systems/{}", "get_system_information")
-    get_item_group_information = _esi(1, "universe/groups/{}", "get_item_group_information")
-    get_item_category_information = _esi(1, "universe/categories/{}", "get_item_category_information")
-    _get_region_orders = _esi(1, "markets/{}/orders/", "_get_region_orders", accepts_params=True)
-    get_market_group = _esi(1, "markets/groups/{}", "get_market_group")
+    get_type_information = _esi("universe/types/{}", "get_type_information")
+    get_region_information = _esi("universe/regions/{}", "get_region_information")
+    get_constellation_information = _esi("universe/constellations/{}", "get_constellation_information")
+    get_system_information = _esi("universe/systems/{}", "get_system_information")
+    get_item_group_information = _esi("universe/groups/{}", "get_item_group_information")
+    get_item_category_information = _esi("universe/categories/{}", "get_item_category_information")
+    _get_region_orders = _esi("markets/{}/orders/", "_get_region_orders", accepts_params=True)
+    get_market_group = _esi("markets/groups/{}", "get_market_group")
     # fmt: on
 
 
@@ -480,11 +486,11 @@ class ESISession(PublicESISession):
     _STC = SessionType.character
     _STH = SessionType.headers
     # fmt: off
-    get_skills = _esi(4, "characters/{}/skills", "get_skills", _STC)
-    get_skill_queue = _esi(2, "characters/{}/skillqueue/", "get_skill_queue", _STC)
-    get_wallet_balance = _esi(1, "characters/{}/wallet", "get_wallet_balance", _STC)
-    get_wallet_journal = _esi(6, "characters/{}/wallet/journal/", "get_wallet_journal", _STC)
-    get_attributes = _esi(1, "characters/{}/attributes/", "get_attributes", _STC)
-    get_implants = _esi(1, "characters/{}/implants/", "get_implants", _STC)
-    _get_structure_market = _esi(1, "markets/structures/{}", "_get_structure_market", _STH, True)
+    get_skills = _esi("characters/{}/skills", "get_skills", _STC)
+    get_skill_queue = _esi("characters/{}/skillqueue/", "get_skill_queue", _STC)
+    get_wallet_balance = _esi("characters/{}/wallet", "get_wallet_balance", _STC)
+    get_wallet_journal = _esi("characters/{}/wallet/journal/", "get_wallet_journal", _STC)
+    get_attributes = _esi("characters/{}/attributes/", "get_attributes", _STC)
+    get_implants = _esi("characters/{}/implants/", "get_implants", _STC)
+    _get_structure_market = _esi("markets/structures/{}", "_get_structure_market", _STH, True)
     # fmt: on
