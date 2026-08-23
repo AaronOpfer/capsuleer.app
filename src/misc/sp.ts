@@ -135,13 +135,18 @@ export function calculate_number_of_injectors(
         }
         injectors += 1;
         desired -= si_effectiveness;
+        sp += si_effectiveness;
     }
 }
 
 // How much SP `count` Large Skill Injectors would add to a character currently at `sp` total
-// skill points, at the character's current injector-effectiveness tier (matching
-// calculate_number_of_injectors, which likewise holds the tier fixed rather than recomputing
-// it as SP rises with each injector).
+// skill points. Each injector's effectiveness depends on the character's total SP *at the time
+// it's consumed*, so this recomputes the tier after every injector rather than assuming they
+// all land in the tier `sp` started in.
 export function sp_from_injectors(sp: number, count: number): number {
-    return large_skill_injector_effectiveness(sp) * count;
+    let total_gained = 0;
+    for (let i = 0; i < count; i++) {
+        total_gained += large_skill_injector_effectiveness(sp + total_gained);
+    }
+    return total_gained;
 }
