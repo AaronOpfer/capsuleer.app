@@ -210,7 +210,7 @@ class Body extends Component<BodyProps, BodyState> {
         return (
             <>
                 <div className="top">
-                    {this.state.loading_state ? (
+                    {this.state.loading_state && char_skills == null ? (
                         <LoadingSpinner
                             className="top_loading_spinner"
                             waiting={this.state.loading_state === "waiting"}
