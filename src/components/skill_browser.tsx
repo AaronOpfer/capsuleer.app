@@ -6,7 +6,8 @@ import {format_with_decimals} from "../misc/formatting";
 import SkillRequirementTree from "./skill_requirement_tree";
 import SkillCostsForCharacter from "./skill_costs_for_character";
 import Skill from "./skill";
-import loadingSvg from "../static/loading.svg";
+import LoadingSpinner from "./loading_spinner";
+import {request_manager} from "../server";
 
 enum SkillsToDisplay {
     all_skills = 0,
@@ -54,17 +55,16 @@ class FocusedSkill extends Component<FocusedSkillProps, FocusedSkillState> {
 
     async fetch_skill_data() {
         const skill_id = this.props.skill_id;
-        let response: Response;
-        // ESI API can just decide to fail sometimes, retrying can sometimes fix it.
-        response = await fetch(`https://esi.evetech.net/latest/universe/types/${skill_id}/`);
-        if (response.status > 502 && response.status < 504) {
-            response = await fetch(`https://esi.evetech.net/latest/universe/types/${skill_id}/`);
-        }
-        if (!response.ok) {
-            const body = await response.text();
-            throw Error(`ESI failed with ${response.status}: ${body}`);
-        }
-        const json = await response.json();
+        const json = await request_manager.run(async () => {
+            const response = await fetch(
+                `https://esi.evetech.net/latest/universe/types/${skill_id}/`,
+            );
+            if (!response.ok) {
+                const body = await response.text();
+                throw Error(`ESI failed with ${response.status}: ${body}`);
+            }
+            return response.json();
+        });
         if (this.props.skill_id != skill_id) {
             return;
         }
@@ -130,7 +130,7 @@ class FocusedSkill extends Component<FocusedSkillProps, FocusedSkillState> {
                     </table>
                     <p className="focused_skill_description">
                         {this.state.description === null ? (
-                            <img width={64} height={64} src={loadingSvg} />
+                            <LoadingSpinner className="loading_indicator" />
                         ) : (
                             this.state.description
                         )}

@@ -1,11 +1,7 @@
 import {PureComponent} from "preact/compat";
 import CharacterSelect from "./character_select";
 import {setTimeoutWithVisibility, TimeoutHandle} from "../../misc/visibilitytimeout";
-import {
-    CharacterTrainingProgress,
-    CharacterNameAndId,
-    download_character_training_progress,
-} from "../../server";
+import {CharacterTrainingProgress, CharacterNameAndId, request_manager} from "../../server";
 import {Settings} from "../md";
 
 interface HeaderProps {
@@ -62,16 +58,22 @@ export default class Header extends PureComponent<HeaderProps, HeaderState> {
         this.setState({training_data, current_time: now});
         this.earliest_end_date = new Date();
         this.earliest_end_date.setMinutes(this.earliest_end_date.getMinutes() + 10);
-        for await (const progress of download_character_training_progress()) {
-            if (
-                progress.end_date != undefined &&
-                (this.earliest_end_date === undefined || progress.end_date < this.earliest_end_date)
-            ) {
-                this.earliest_end_date = progress.end_date;
+        try {
+            for await (const progress of request_manager.download_character_training_progress()) {
+                if (
+                    progress.end_date != undefined &&
+                    (this.earliest_end_date === undefined ||
+                        progress.end_date < this.earliest_end_date)
+                ) {
+                    this.earliest_end_date = progress.end_date;
+                }
+                training_data = {...training_data};
+                training_data[progress.character_id] = progress;
+                this.setState({training_data, current_time: new Date()});
             }
-            training_data = {...training_data};
-            training_data[progress.character_id] = progress;
-            this.setState({training_data, current_time: new Date()});
+        } catch {
+            // NeedsLoginError: handled elsewhere. This endpoint always returns 200, so
+            // CharacterNeedsUpdated can't happen here.
         }
         this.update_time();
     }

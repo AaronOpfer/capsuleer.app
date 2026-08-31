@@ -85,7 +85,7 @@ export default class ISKForSPPanel extends PureComponent<ISKForSPPanelProps, ISK
         this.on_fake_bio5 = this.on_fake_bio5.bind(this);
     }
 
-    async refreshPricingData() {
+    async fetchPricingData() {
         const data = await (
             await fetch("/skilltrades", {
                 credentials: "same-origin",
@@ -93,7 +93,7 @@ export default class ISKForSPPanel extends PureComponent<ISKForSPPanelProps, ISK
             })
         ).json();
 
-        this.setState({
+        return {
             lsi_price: data[0],
             ssi_price: data[1],
             accelerators: data[2].map((d) => ({
@@ -103,7 +103,19 @@ export default class ISKForSPPanel extends PureComponent<ISKForSPPanelProps, ISK
                 magnitude: d[3],
                 duration: d[4],
             })),
-        });
+        };
+    }
+
+    async refreshPricingData() {
+        let data;
+        try {
+            data = await this.fetchPricingData();
+        } catch (err) {
+            // not important enough to go through RequestManager's retry; try again next cycle
+            if (typeof console !== "undefined") console.error("ISK/SP table refresh failed", err);
+            return;
+        }
+        this.setState(data);
     }
 
     async componentDidMount() {
@@ -218,7 +230,7 @@ export default class ISKForSPPanel extends PureComponent<ISKForSPPanelProps, ISK
         const props = this.props;
         const state = this.state;
         if (state.lsi_price == null || state.ssi_price == null) {
-            return <div className="isk_sp loading" />;
+            return <div className="isk_sp" />;
         }
 
         let sources = this.get_accelerator_isk_sp().concat(this.get_injector_isk_sp());

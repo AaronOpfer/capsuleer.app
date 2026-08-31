@@ -4,7 +4,8 @@ import {format_duration} from "../misc/formatting";
 import CharacterSkills from "../character_skills";
 import {sp_required, calculate_number_of_injectors} from "../misc/sp";
 import {format_with_decimals} from "../misc/formatting";
-import loadingSvg from "../static/loading.svg";
+import LoadingSpinner from "./loading_spinner";
+import {LoadingState} from "../server";
 
 const level = ["I", "II", "III", "IV", "V"];
 
@@ -31,6 +32,7 @@ class Duration extends PureComponent<DurationProps, Record<string, never>> {
 
 interface SkillQueueProps {
     data: CharacterSkills | null;
+    loading_state?: LoadingState | null;
 }
 
 export default class SkillQueue extends Component<SkillQueueProps, Record<string, never>> {
@@ -39,7 +41,12 @@ export default class SkillQueue extends Component<SkillQueueProps, Record<string
         if (data == null) {
             return (
                 <div className="skill_queue skill_queue_loading">
-                    <img className="loading_indicator" src={loadingSvg} />
+                    {this.props.loading_state ? (
+                        <LoadingSpinner
+                            className="loading_indicator"
+                            waiting={this.props.loading_state === "waiting"}
+                        />
+                    ) : null}
                 </div>
             );
         }

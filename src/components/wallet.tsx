@@ -1,14 +1,22 @@
 import {Component} from "preact/compat";
 import {format_with_decimals} from "../misc/formatting";
-import {download_wallet, WalletEntry} from "../server";
+import {
+    request_manager,
+    NeedsLoginError,
+    CharacterNeedsUpdated,
+    LoadingState,
+    WalletEntry,
+} from "../server";
 
 interface WalletProps {
     character_id: number;
+    invalidate_character: (character_id: number) => void;
 }
 
 interface WalletState {
     page: number;
     entries: WalletEntry[] | null;
+    loading_state: LoadingState | null;
 }
 
 const fmt = (x) => format_with_decimals(x, 0);
@@ -19,6 +27,7 @@ export default class Wallet extends Component<WalletProps, WalletState> {
         this.state = {
             page: 0,
             entries: null,
+            loading_state: null,
         };
     }
 
@@ -35,11 +44,25 @@ export default class Wallet extends Component<WalletProps, WalletState> {
 
     async download_wallet() {
         const character_id = this.props.character_id;
-        const wallet_entries = await download_wallet(character_id);
-        if (this.props.character_id != character_id) {
-            return;
+        try {
+            const wallet_entries = await request_manager.download_wallet(
+                character_id,
+                (loading_state) => this.setState({loading_state}),
+            );
+            if (this.props.character_id != character_id) {
+                return;
+            }
+            this.setState({entries: wallet_entries, loading_state: null});
+        } catch (err) {
+            if (err instanceof CharacterNeedsUpdated) {
+                this.props.invalidate_character(character_id);
+                return;
+            }
+            if (err instanceof NeedsLoginError) {
+                return;
+            }
+            throw err;
         }
-        this.setState({entries: wallet_entries});
     }
 
     render() {
@@ -48,7 +71,13 @@ export default class Wallet extends Component<WalletProps, WalletState> {
         if (this.state.entries === null) {
             entries = (
                 <tr>
-                    <td className="wallet_notice" colSpan={4}>
+                    <td
+                        className={
+                            "wallet_notice" +
+                            (this.state.loading_state === "waiting" ? " waiting" : "")
+                        }
+                        colSpan={4}
+                    >
                         Loading wallet content...
                     </td>
                 </tr>

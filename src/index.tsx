@@ -9,10 +9,10 @@ import CharacterSkills from "./character_skills";
 import {
     NeedsLoginError,
     CharacterNeedsUpdated,
-    download_characters,
-    download_character_skills,
     delete_character,
+    request_manager,
     CharacterNameAndId,
+    LoadingState,
 } from "./server";
 
 import LoginForm from "./components/login_form";
@@ -24,7 +24,8 @@ import SkillBrowser from "./components/skill_browser";
 import CharSummary from "./components/char_summary";
 import Wallet from "./components/wallet";
 import Settings from "./components/settings";
-import loadingSvg from "./static/loading.svg";
+import ConnectionOverlay from "./components/connection_overlay";
+import LoadingSpinner from "./components/loading_spinner";
 
 interface BodyProps {
     character_name: string;
@@ -43,6 +44,7 @@ interface BodyState {
     char_skills: CharacterSkills | null;
     view: CurrentView;
     split_view: boolean;
+    loading_state: LoadingState | null;
 }
 
 class Body extends Component<BodyProps, BodyState> {
@@ -56,6 +58,7 @@ class Body extends Component<BodyProps, BodyState> {
             char_skills: null,
             view: split_view ? CurrentView.skillBrowser : CurrentView.skillQueue,
             split_view: split_view,
+            loading_state: null,
         };
         this.update_interval = null;
         this.refresh_timeout = null;
@@ -119,11 +122,14 @@ class Body extends Component<BodyProps, BodyState> {
         const character_id = this.props.character_id;
 
         try {
-            const char_skills = await download_character_skills(character_id);
+            const char_skills = await request_manager.download_character_skills(
+                character_id,
+                (loading_state) => this.setState({loading_state}),
+            );
             if (this.props.character_id !== character_id) {
                 return;
             }
-            this.setState({char_skills});
+            this.setState({char_skills, loading_state: null});
             if (!char_skills.skill_queue_paused) {
                 this.update_interval = setInterval(() => {
                     char_skills.update();
@@ -142,7 +148,6 @@ class Body extends Component<BodyProps, BodyState> {
                 return;
             }
             if (err instanceof NeedsLoginError) {
-                window.show_login();
                 return;
             }
             throw err;
@@ -158,12 +163,24 @@ class Body extends Component<BodyProps, BodyState> {
 
         switch (this.state.view) {
             case CurrentView.skillQueue:
-                view = <SkillQueue key="view" data={char_skills} />;
+                view = (
+                    <SkillQueue
+                        key="view"
+                        data={char_skills}
+                        loading_state={this.state.loading_state}
+                    />
+                );
                 break;
             case CurrentView.none:
                 break;
             case CurrentView.wallet:
-                view = <Wallet key="view" character_id={this.props.character_id} />;
+                view = (
+                    <Wallet
+                        key="view"
+                        character_id={this.props.character_id}
+                        invalidate_character={this.props.invalidate_character}
+                    />
+                );
                 break;
             case CurrentView.skillBrowser:
                 view = <SkillBrowser key="view" data={char_skills} />;
@@ -192,7 +209,13 @@ class Body extends Component<BodyProps, BodyState> {
 
         return (
             <>
-                <div className={char_skills ? "top" : "top loading"}>
+                <div className="top">
+                    {this.state.loading_state ? (
+                        <LoadingSpinner
+                            className="top_loading_spinner"
+                            waiting={this.state.loading_state === "waiting"}
+                        />
+                    ) : null}
                     <CharSummary name={this.props.character_name} data={char_skills} />
                     <ISKForSPPanel
                         biology_skill_level={char_skills ? char_skills.skill_level(3405) : null}
@@ -206,7 +229,11 @@ class Body extends Component<BodyProps, BodyState> {
                 <div className={"tab_content" + (this.state.split_view ? " split_view" : "")}>
                     {view}
                     {this.state.split_view ? (
-                        <SkillQueue key="split_view" data={char_skills} />
+                        <SkillQueue
+                            key="split_view"
+                            data={char_skills}
+                            loading_state={this.state.loading_state}
+                        />
                     ) : null}
                 </div>
             </>
@@ -227,6 +254,7 @@ interface AuthenticatedContentState {
     characters: CharacterNameAndId[] | null;
     valid: boolean;
     settings_open: boolean;
+    loading_state: LoadingState | null;
 }
 
 class AuthenticatedContent extends Component<Record<string, never>, AuthenticatedContentState> {
@@ -238,6 +266,7 @@ class AuthenticatedContent extends Component<Record<string, never>, Authenticate
             valid: true,
             characters: null,
             settings_open: false,
+            loading_state: null,
         };
         this.on_character_delete_request = this.on_character_delete_request.bind(this);
         this.invalidate_character = this.invalidate_character.bind(this);
@@ -300,10 +329,12 @@ class AuthenticatedContent extends Component<Record<string, never>, Authenticate
     async load_characters() {
         let new_state;
         try {
-            new_state = {characters: await download_characters()};
+            const characters = await request_manager.download_characters((loading_state) =>
+                this.setState({loading_state}),
+            );
+            new_state = {characters, loading_state: null};
         } catch (exc) {
             if (exc instanceof NeedsLoginError) {
-                window.show_login();
                 return;
             }
             throw exc;
@@ -357,7 +388,12 @@ class AuthenticatedContent extends Component<Record<string, never>, Authenticate
                         <h1>capsuleer.app</h1>
                     </header>
                     <div>
-                        <img src={loadingSvg} />
+                        {this.state.loading_state ? (
+                            <LoadingSpinner
+                                className="loading_indicator"
+                                waiting={this.state.loading_state === "waiting"}
+                            />
+                        ) : null}
                     </div>
                 </>
             );
@@ -403,13 +439,23 @@ interface ApplicationState {
 }
 
 class Application extends Component<Record<string, never>, ApplicationState> {
+    unsubscribe_needs_login: (() => void) | null = null;
+
     constructor(props) {
         super(props);
-        window.show_login = this.show_login = this.show_login.bind(this);
+        this.show_login = this.show_login.bind(this);
         this.state = {
             show_login: false,
             show_error: false,
         };
+    }
+
+    componentDidMount() {
+        this.unsubscribe_needs_login = request_manager.subscribe_needs_login(this.show_login);
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe_needs_login?.();
     }
 
     show_login() {
@@ -452,6 +498,7 @@ function render() {
     const root = createRoot(container!);
     root.render(
         <StrictMode>
+            <ConnectionOverlay />
             <Application />
         </StrictMode>,
     );
