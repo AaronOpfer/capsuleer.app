@@ -19,12 +19,34 @@ declare global {
 export class NeedsLoginError extends Error {}
 export class CharacterNeedsUpdated extends Error {}
 
-function throw_for_response_status(response: Response): void {
+export class UpstreamESIError extends Error {
+    likely_downtime: boolean;
+
+    constructor(likely_downtime: boolean) {
+        super("ESI request failed");
+        this.likely_downtime = likely_downtime;
+    }
+}
+
+export async function throw_for_response_status(response: Response): Promise<void> {
     if (response.status == 401) {
         throw new NeedsLoginError();
     }
     if (response.status == 205) {
         throw new CharacterNeedsUpdated();
+    }
+    if (response.status == 503) {
+        let body: unknown = null;
+        try {
+            body = await response.json();
+        } catch {
+            // not a JSON body -- e.g. an nginx/proxy error page, not our app server
+        }
+        const record = body as {error?: unknown; likely_downtime?: unknown} | null;
+        if (record?.error === "esi_unavailable") {
+            throw new UpstreamESIError(record.likely_downtime === true);
+        }
+        throw new Error("Request failed with status 503");
     }
 }
 
@@ -34,11 +56,13 @@ export interface OverlayState {
     visible: boolean;
     offline: boolean;
     can_retry_now: boolean;
+    downtime: boolean;
 }
 
 export class RequestManager {
     private problem_count = 0;
     private sleeping_count = 0;
+    private downtime_count = 0;
     private overlay_listeners = new Set<(state: OverlayState) => void>();
     private needs_login_listeners = new Set<() => void>();
     private retry_now_target = new EventTarget();
@@ -59,6 +83,7 @@ export class RequestManager {
             visible: this.problem_count > 0,
             offline: !this.is_online(),
             can_retry_now: this.sleeping_count > 0,
+            downtime: this.downtime_count > 0,
         };
     }
 
@@ -85,6 +110,16 @@ export class RequestManager {
     private clear_sleeping() {
         this.sleeping_count--;
         if (this.sleeping_count === 0) this.emit_overlay_state();
+    }
+
+    private mark_downtime() {
+        this.downtime_count++;
+        if (this.downtime_count === 1) this.emit_overlay_state();
+    }
+
+    private clear_downtime() {
+        this.downtime_count--;
+        if (this.downtime_count === 0) this.emit_overlay_state();
     }
 
     subscribe_overlay_state(listener: (state: OverlayState) => void): () => void {
@@ -196,6 +231,13 @@ export class RequestManager {
                 this.mark_problem();
             }
         };
+        let has_downtime = false;
+        const mark_downtime_once = () => {
+            if (!has_downtime) {
+                has_downtime = true;
+                this.mark_downtime();
+            }
+        };
 
         try {
             for (let attempt = 0; ; attempt++) {
@@ -218,7 +260,9 @@ export class RequestManager {
                     if (err instanceof CharacterNeedsUpdated) {
                         throw err;
                     }
-                    const past_short_bursts = attempt >= retry_delays_ms.length;
+                    const is_downtime = err instanceof UpstreamESIError && err.likely_downtime;
+                    if (is_downtime) mark_downtime_once();
+                    const past_short_bursts = is_downtime || attempt >= retry_delays_ms.length;
                     const delay = past_short_bursts
                         ? 45_000 + Math.random() * 30_000
                         : retry_delays_ms[attempt];
@@ -230,6 +274,7 @@ export class RequestManager {
         } finally {
             clear_debounce();
             if (has_problem) this.clear_problem();
+            if (has_downtime) this.clear_downtime();
         }
     }
 
@@ -245,7 +290,7 @@ export class RequestManager {
             } else {
                 response = await fetch("/characters", {credentials: "same-origin"});
             }
-            throw_for_response_status(response);
+            await throw_for_response_status(response);
             return (await response.json()).map((c) => ({
                 id: c[0],
                 name: c[1],
@@ -260,7 +305,7 @@ export class RequestManager {
     ): Promise<CharacterSkills> {
         return this.run(async () => {
             const response = await fetch(`${character_id}/skills`, {credentials: "same-origin"});
-            throw_for_response_status(response);
+            await throw_for_response_status(response);
             return new CharacterSkills(await response.json());
         }, on_loading_state);
     }
@@ -271,7 +316,7 @@ export class RequestManager {
     ): Promise<WalletEntry[]> {
         return this.run(async () => {
             const response = await fetch(`${character_id}/wallet`, {credentials: "same-origin"});
-            throw_for_response_status(response);
+            await throw_for_response_status(response);
             const json = await response.json();
             if (json.length === 0) {
                 return [];
@@ -354,7 +399,7 @@ export interface CharacterTrainingProgress {
 async function* makeTextFileLineIterator(fetch_promise) {
     const utf8Decoder = new TextDecoder("utf-8");
     const response = await fetch_promise;
-    throw_for_response_status(response);
+    await throw_for_response_status(response);
     const reader = response.body.getReader();
     let {value: chunk, done: readerDone} = await reader.read();
     chunk = chunk ? utf8Decoder.decode(chunk) : "";

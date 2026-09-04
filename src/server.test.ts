@@ -1,5 +1,11 @@
 import {afterEach, beforeEach, expect, test, vi} from "vitest";
-import {RequestManager, NeedsLoginError, CharacterNeedsUpdated} from "./server";
+import {
+    RequestManager,
+    NeedsLoginError,
+    CharacterNeedsUpdated,
+    UpstreamESIError,
+    throw_for_response_status,
+} from "./server";
 
 class FakeEventTarget extends EventTarget {}
 
@@ -45,7 +51,9 @@ test("run succeeds on the first try: no overlay change, no loading callback", as
 
     expect(result).toBe("data");
     expect(fn).toHaveBeenCalledTimes(1);
-    expect(overlay_states).toEqual([{visible: false, offline: false, can_retry_now: false}]);
+    expect(overlay_states).toEqual([
+        {visible: false, offline: false, can_retry_now: false, downtime: false},
+    ]);
     expect(loading_states).toEqual([]);
 });
 
@@ -221,4 +229,69 @@ test("keeps retrying forever past the short bursts, at a random 45-75s interval,
     expect(fn).toHaveBeenCalledTimes(6);
 
     random_spy.mockRestore();
+});
+
+test("UpstreamESIError skips the short bursts immediately and flags the overlay as downtime", async () => {
+    const random_spy = vi.spyOn(Math, "random").mockReturnValue(0);
+    const rm = new RequestManager();
+    const overlay_states: Array<{visible: boolean; downtime: boolean}> = [];
+    rm.subscribe_overlay_state((s) =>
+        overlay_states.push({visible: s.visible, downtime: s.downtime}),
+    );
+
+    const fn = scripted(fail(new UpstreamESIError(true)), ok("data"));
+    const promise = rm.run(fn, undefined, [1000, 3000, 8000]);
+
+    // even on the very first failure (attempt 0, well within the short-burst
+    // range) the delay should already be the long 45-75s one, not 1000ms.
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fn).toHaveBeenCalledTimes(1); // not yet retried
+
+    await vi.advanceTimersByTimeAsync(44000); // total 45000 -> fires
+    const result = await promise;
+
+    expect(result).toBe("data");
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(overlay_states.some((s) => s.downtime)).toBe(true);
+    expect(overlay_states.at(-1)).toEqual({visible: false, downtime: false});
+
+    random_spy.mockRestore();
+});
+
+test("UpstreamESIError with likely_downtime=false behaves like an ordinary error", async () => {
+    const rm = new RequestManager();
+    const overlay_states: Array<{downtime: boolean}> = [];
+    rm.subscribe_overlay_state((s) => overlay_states.push({downtime: s.downtime}));
+
+    const fn = scripted(fail(new UpstreamESIError(false)), ok("data"));
+    const promise = rm.run(fn, undefined, [1000, 3000, 8000]);
+
+    await vi.advanceTimersByTimeAsync(1000); // short-burst delay, not the long one
+    const result = await promise;
+
+    expect(result).toBe("data");
+    expect(fn).toHaveBeenCalledTimes(2);
+    expect(overlay_states.some((s) => s.downtime)).toBe(false);
+});
+
+test("throw_for_response_status treats a marked 503 body as UpstreamESIError", async () => {
+    const response = new Response(
+        JSON.stringify({error: "esi_unavailable", likely_downtime: true}),
+        {
+            status: 503,
+        },
+    );
+    await expect(throw_for_response_status(response)).rejects.toEqual(new UpstreamESIError(true));
+});
+
+test("throw_for_response_status treats an unmarked/non-JSON 503 (e.g. from nginx) as an ordinary error", async () => {
+    const json_response = new Response(JSON.stringify({some: "other shape"}), {status: 503});
+    await expect(throw_for_response_status(json_response)).rejects.not.toBeInstanceOf(
+        UpstreamESIError,
+    );
+
+    const html_response = new Response("<html>503 Service Unavailable</html>", {status: 503});
+    await expect(throw_for_response_status(html_response)).rejects.not.toBeInstanceOf(
+        UpstreamESIError,
+    );
 });

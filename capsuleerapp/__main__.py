@@ -582,7 +582,9 @@ async def esi_failure_middleware(request, handler):
         return await handler(request)
     except ESIRequestFailure as exc:
         return aiohttp.web.json_response(
-            {"likely_downtime": exc.likely_downtime}, dumps=dumps, status=503
+            {"error": "esi_unavailable", "likely_downtime": exc.likely_downtime},
+            dumps=dumps,
+            status=503,
         )
 
 

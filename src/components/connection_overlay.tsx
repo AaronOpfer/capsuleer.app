@@ -6,7 +6,7 @@ export default class ConnectionOverlay extends Component<Record<string, never>, 
 
     constructor(props) {
         super(props);
-        this.state = {visible: false, offline: false, can_retry_now: false};
+        this.state = {visible: false, offline: false, can_retry_now: false, downtime: false};
     }
 
     componentDidMount() {
@@ -23,10 +23,15 @@ export default class ConnectionOverlay extends Component<Record<string, never>, 
 
     render() {
         if (!this.state.visible) return null;
-        const {offline, can_retry_now} = this.state;
+        const {offline, can_retry_now, downtime} = this.state;
+        const message = offline
+            ? "You are currently offline."
+            : downtime
+              ? "Some data can't be loaded due to EVE cluster downtime."
+              : "Connection problem: will retry soon.";
         return (
             <div className="connection_overlay">
-                {offline ? "You are currently offline." : "Connection problem: will retry soon."}
+                {message}
                 <button disabled={!can_retry_now} onClick={this.on_retry_now}>
                     {can_retry_now ? (offline ? "Check now" : "Retry now") : "Retrying..."}
                 </button>

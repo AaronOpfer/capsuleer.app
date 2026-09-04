@@ -23,10 +23,14 @@ class TestESIFailureMiddleware(unittest.IsolatedAsyncioTestCase):
         client = await self._make_client(True)
         resp = await client.get("/")
         self.assertEqual(resp.status, 503)
-        self.assertEqual(await resp.json(), {"likely_downtime": True})
+        self.assertEqual(
+            await resp.json(), {"error": "esi_unavailable", "likely_downtime": True}
+        )
 
     async def test_translates_to_503_with_downtime_false(self):
         client = await self._make_client(False)
         resp = await client.get("/")
         self.assertEqual(resp.status, 503)
-        self.assertEqual(await resp.json(), {"likely_downtime": False})
+        self.assertEqual(
+            await resp.json(), {"error": "esi_unavailable", "likely_downtime": False}
+        )
