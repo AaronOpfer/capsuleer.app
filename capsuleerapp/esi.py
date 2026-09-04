@@ -10,7 +10,6 @@ import weakref
 
 import aiohttp
 
-from .data import forge_npc_station_ids
 from .jwt import EveJWTValidator
 from .types import (
     ABCSession,
@@ -63,6 +62,8 @@ class SessionType(enum.Enum):
 
 RETRY_ERROR_STATUSES = frozenset({502, 503, 504})
 RATE_LIMIT_STATUS = 429
+# https://developers.eveonline.com/docs/reference/id-ranges/#stations
+NPC_STATION_ID_RANGE = range(60_000_000, 61_000_000)
 
 
 class RateLimitLogger:
@@ -393,7 +394,11 @@ class PublicESISession:
         except AttributeError:
             pass
         orders = self.get_forge_orders("buy")
-        result = {o["location_id"] async for o in orders} - forge_npc_station_ids
+        result = {
+            o["location_id"]
+            async for o in orders
+            if o["location_id"] not in NPC_STATION_ID_RANGE
+        }
         self._forge_citadel_cache = result, now
         return result
 

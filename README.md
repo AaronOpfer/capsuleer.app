@@ -46,7 +46,6 @@ For now, sourcing a postgres database is up to the deployment. On the real deplo
 The offline module contains scripts for generating static data used by various parts of the app.
 
  * `implant_search.py` creates the static data necessary to determine which implant IDs correspond to which attribute bonus. When new implants are added, this script needs to be rerun.
- * `all_forge_npc.py` determines all station IDs for NPC stations in The Forge, necessary for the market price estimator feature to differentiate citadels and stations. New NPC stations are not very common; the last one was for Paragon/NPE.
  * `dump_skills.py` creates a static JSON file used by the JavaScript build so that the local client has complete knowledge of the skills available in EVE Online. *This means that the front-end needs to be rebuilt every time CCP adds more skills to the game.*
 
 ## Setting up the NPC Corporation Character Token
