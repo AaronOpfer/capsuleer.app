@@ -439,6 +439,15 @@ class Server:
                 result = None
             except asyncio.CancelledError:  # soften this for reporting purposes
                 result = None
+            except ESIRequestFailure as exc:
+                if exc.likely_downtime:  # soften this for reporting purposes
+                    logger.info(
+                        "character %d skill queue download failed during ESI downtime",
+                        character_id,
+                    )
+                else:
+                    logger.exception("error downloading %d skill queue", character_id)
+                result = None
             except BaseException:
                 logger.exception("error downloading %d skill queue", character_id)
                 result = None
