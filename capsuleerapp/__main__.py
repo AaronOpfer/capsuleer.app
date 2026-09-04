@@ -23,7 +23,13 @@ from .data import implant_type_id_to_learning_bonus
 from .db import Database
 from .esi import ESISession
 from .isk_for_sp import get_isk_for_sp_options
-from .types import Character, CharacterNeedsUpdated, ItemTypes, NoSuchCharacter
+from .types import (
+    Character,
+    CharacterNeedsUpdated,
+    ESIRequestFailure,
+    ItemTypes,
+    NoSuchCharacter,
+)
 
 logger = logging.getLogger(__name__)
 dumps = functools.partial(json.dumps, separators=(",", ":"))
@@ -354,6 +360,12 @@ class Server:
 
     async def _skill_trade_task(self):
         while True:
+            now = datetime.datetime.now(datetime.UTC).time()
+            # skip around daily downtime; ESI market data is unreliable then
+            if datetime.time(10, 58) <= now < datetime.time(11, 32):
+                await asyncio.sleep(60 * 30)
+                continue
+
             try:
                 characters, _validity = await self.db.get_characters(
                     self._internal_account_id
@@ -517,7 +529,7 @@ class Server:
         return f"{character_id}:{skill_id}:{level}:{sp}:{started}:{ended}\n".encode()
 
     async def run(self, listen_sock_path, dbargs, cookie_secret_key):
-        app = aiohttp.web.Application()
+        app = aiohttp.web.Application(middlewares=[esi_failure_middleware])
         app.add_routes(
             [
                 aiohttp.web.post("/characters/ordering", self.change_ordering),
@@ -562,6 +574,16 @@ class Server:
 
 async def raiser():
     raise RuntimeError("It raised")
+
+
+@aiohttp.web.middleware
+async def esi_failure_middleware(request, handler):
+    try:
+        return await handler(request)
+    except ESIRequestFailure as exc:
+        return aiohttp.web.json_response(
+            {"likely_downtime": exc.likely_downtime}, dumps=dumps, status=503
+        )
 
 
 def setup_sentry(dsn):

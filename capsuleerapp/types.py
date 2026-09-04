@@ -60,6 +60,26 @@ class NoSuchCharacter(Exception):
     pass
 
 
+class ESIRequestFailure(Exception):
+    status: int
+    url: str
+    likely_downtime: bool
+
+    @classmethod
+    def _make(cls, status: int, url: str, likely_downtime: bool) -> "ESIRequestFailure":
+        self = cls(f"ESI request to {url} failed with status {status}")
+        self.status = status
+        self.url = url
+        self.likely_downtime = likely_downtime
+        return self
+
+
+def is_esi_downtime(now: datetime.datetime | None = None) -> bool:
+    # EVE Online's daily downtime is scheduled for 11:00-11:30 UTC.
+    t = (now or datetime.datetime.now(datetime.UTC)).time()
+    return datetime.time(11, 0) <= t < datetime.time(11, 30)
+
+
 class JSONDict:
     __slots__ = "_data", "_filename", "_file"
 

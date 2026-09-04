@@ -17,8 +17,10 @@ from .types import (
     Character,
     CharacterNeedsUpdated,
     ESILimiter,
+    ESIRequestFailure,
     RefreshTokenError,
     Response,
+    is_esi_downtime,
 )
 
 logger = logging.getLogger(__name__)
@@ -177,6 +179,11 @@ async def request_with_retry(
             return Response(res, resp)
 
     for attempt in range(3):
+        downtime = is_esi_downtime()
+        if downtime:
+            # ESI is expected to be down for daily downtime; retrying won't
+            # help, so skip straight to the bare, unretried request below.
+            break
         sleep_length = attempt + random.uniform(0.5, 1.5)
         try:
             return await request()
@@ -187,7 +194,7 @@ async def request_with_retry(
                 except (KeyError, TypeError, ValueError):
                     pass
             elif exc.status not in RETRY_ERROR_STATUSES:
-                raise
+                raise ESIRequestFailure._make(exc.status, url, downtime) from exc
             logger.warning(
                 "GET %s hit %d, sleeping for %.1f and trying again",
                 url,
@@ -204,7 +211,10 @@ async def request_with_retry(
         await asyncio.sleep(sleep_length)
 
     # For the last attempt, don't use try..except.
-    return await request()
+    try:
+        return await request()
+    except aiohttp.ClientResponseError as exc:
+        raise ESIRequestFailure._make(exc.status, url, downtime) from exc
 
 
 def _esi(
