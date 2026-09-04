@@ -4,16 +4,10 @@ import std;
 backend default {
  .host = "127.127.127.127";
  .port = "12721";
- .probe = {
-     .request =
-         "GET /latest/status/ HTTP/1.1"
-         "Host: esi.evetech.net"
-         "Connection: close";
-     .interval = 5s;
-     .timeout = 2s;
-     .window = 5;
-     .threshold = 3;
- }
+ /* No active health probe: it can't see through ESI's own edge caching
+  * (stale-if-error=900s on /status/) during the brief blips we actually
+  * care about, so health is entirely driven by the cron job that marks
+  * the backend sick/auto around daily downtime. */
 }
 
 sub vcl_recv {
@@ -75,7 +69,7 @@ sub vcl_backend_response {
     if (bereq.uncacheable) {
         return (deliver);
     }
-    if (beresp.status >= 500) {
+    if (beresp.status >= 400) {
         if (bereq.is_bgfetch) {
             /* discard a failed background refresh during an outage (see vcl_hit) */
             return (abandon);
@@ -85,7 +79,7 @@ sub vcl_backend_response {
         set beresp.uncacheable = true;
         return (deliver);
     }
-    set beresp.grace = 15m; /* vcl_hit's stale window */
+    set beresp.grace = 1h; /* vcl_hit's stale window */
     set beresp.keep = 1d; /* keep bodies so we can get 304s from the backend */
     return (deliver);
 }

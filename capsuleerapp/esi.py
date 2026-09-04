@@ -1,10 +1,12 @@
 import asyncio
+import contextlib
 import datetime
 import enum
 import functools
 import logging
 import random
 import time
+import weakref
 
 import aiohttp
 
@@ -63,8 +65,85 @@ RETRY_ERROR_STATUSES = frozenset({502, 503, 504})
 RATE_LIMIT_STATUS = 429
 
 
+class RateLimitLogger:
+    __slots__ = "_loop", "_timer", "_pending", "__weakref__"
+
+    DEBOUNCE_SECONDS = 2.0
+
+    def __init__(self) -> None:
+        self._loop = asyncio.get_running_loop()
+        self._timer: asyncio.TimerHandle | None = None
+        self._pending: tuple[str, int | None, str, int, str] | None = None
+
+    def log(
+        self,
+        group: str,
+        character_id: int | None,
+        limit: str,
+        remaining: int,
+        used: str,
+    ) -> None:
+        if remaining != 0 and self._timer is not None:
+            self._pending = (group, character_id, limit, remaining, used)
+            return
+        self._pending = None
+        self._log_now(group, character_id, limit, remaining, used)
+
+    def _log_now(
+        self,
+        group: str,
+        character_id: int | None,
+        limit: str,
+        remaining: int,
+        used: str,
+    ) -> None:
+        logger.info(
+            "Ratelimit: Group=%s Character=%s Limit=%s Remaining=%s Used=%s",
+            group,
+            character_id,
+            limit,
+            remaining,
+            used,
+        )
+        if self._timer is not None:
+            self._timer.cancel()
+        self._timer = self._loop.call_later(
+            self.DEBOUNCE_SECONDS,
+            self._invoke_weak,
+            weakref.WeakMethod(self._on_timeout),
+        )
+
+    @staticmethod
+    def _invoke_weak(weak_method: weakref.WeakMethod) -> None:
+        method = weak_method()
+        if method is not None:
+            method()
+
+    def _on_timeout(self) -> None:
+        self._timer = None
+        if self._pending is not None:
+            pending, self._pending = self._pending, None
+            self._log_now(*pending)
+
+    def __del__(self) -> None:
+        if self._timer is not None:
+            self._timer.cancel()
+            self._timer = None
+        if self._pending is not None:
+            group, character_id, limit, remaining, used = self._pending
+            self._pending = None
+            logger.info(
+                "Ratelimit: Group=%s Character=%s Limit=%s Remaining=%s Used=%s",
+                group,
+                character_id,
+                limit,
+                remaining,
+                used,
+            )
+
+
 async def request_with_retry(
-    esilimiter: ESILimiter,
+    esilimiter: ESILimiter | None,
     session: aiohttp.ClientSession,
     url: str,
     headers: dict[str, str],
@@ -75,9 +154,10 @@ async def request_with_retry(
     happens, retry the request again. We wait before retrying in order
     to avoid contributing to a flood situation.
     """
+    limiter = esilimiter if esilimiter is not None else contextlib.nullcontext()
 
     async def request():
-        async with esilimiter, session.get(url, headers=headers, params=params) as resp:
+        async with limiter, session.get(url, headers=headers, params=params) as resp:
             if resp.status in RETRY_ERROR_STATUSES or resp.status == RATE_LIMIT_STATUS:
                 resp.raise_for_status()
 
@@ -131,6 +211,7 @@ def _esi(
     name: str,
     session_type: SessionType = SessionType.none,
     accepts_params: bool = False,
+    legacy_limited: bool = False,
 ):
     if accepts_params is not True and accepts_params is not False:
         raise TypeError("accepts_params must be a boolean")
@@ -162,9 +243,13 @@ def _esi(
 
         url = self._esi_url + url_format_func(*args)
         resp = await request_with_retry(
-            self._esilimiter, self._session, url, headers, params
+            self._esilimiter if legacy_limited else None,
+            self._session,
+            url,
+            headers,
+            params,
         )
-        if "X-ESI-Error-Limit-Remain" in resp.headers:
+        if legacy_limited and "X-ESI-Error-Limit-Remain" in resp.headers:
             try:
                 remaining = int(resp.headers["X-ESI-Error-Limit-Remain"])
                 timeout = int(resp.headers["X-ESI-Error-Limit-Reset"])
@@ -172,6 +257,27 @@ def _esi(
             except Exception:
                 logger.warning(
                     "Ignoring error parsing X-ESI-Error-Limit-Remain", exc_info=True
+                )
+        elif "X-Ratelimit-Remaining" in resp.headers:
+            try:
+                group = resp.headers.get("X-Ratelimit-Group", "unknown")
+                limit = resp.headers["X-Ratelimit-Limit"]
+                remaining = int(resp.headers["X-Ratelimit-Remaining"])
+                used = resp.headers.get("X-Ratelimit-Used", "")
+                character_id = (
+                    session.character.id
+                    if session_type is not SessionType.none
+                    else None
+                )
+                key = (group, character_id)
+                try:
+                    rate_limit_logger = self._ratelimitloggers[key]
+                except KeyError:
+                    rate_limit_logger = self._ratelimitloggers[key] = RateLimitLogger()
+                rate_limit_logger.log(group, character_id, limit, remaining, used)
+            except Exception:
+                logger.warning(
+                    "Ignoring error parsing X-Ratelimit-Remaining", exc_info=True
                 )
         return resp
 
@@ -188,9 +294,11 @@ class PublicESISession:
         "_bad_citadels",
         "_forge_citadel_cache",
         "_esilimiter",
+        "_ratelimitloggers",
     )
 
     def __init__(self, esi_url):
+        self._ratelimitloggers: dict[tuple[str, int | None], RateLimitLogger] = {}
         headers = {
             "User-Agent": "capsuleer.app me@aaronopfer.com",
             "Accept": "application/json",
@@ -290,14 +398,14 @@ class PublicESISession:
         return result
 
     # fmt: off
-    get_type_information = _esi("universe/types/{}", "get_type_information")
-    get_region_information = _esi("universe/regions/{}", "get_region_information")
-    get_constellation_information = _esi("universe/constellations/{}", "get_constellation_information")
-    get_system_information = _esi("universe/systems/{}", "get_system_information")
-    get_item_group_information = _esi("universe/groups/{}", "get_item_group_information")
-    get_item_category_information = _esi("universe/categories/{}", "get_item_category_information")
+    get_type_information = _esi("universe/types/{}", "get_type_information", legacy_limited=True)
+    get_region_information = _esi("universe/regions/{}", "get_region_information", legacy_limited=True)
+    get_constellation_information = _esi("universe/constellations/{}", "get_constellation_information", legacy_limited=True)
+    get_system_information = _esi("universe/systems/{}", "get_system_information", legacy_limited=True)
+    get_item_group_information = _esi("universe/groups/{}", "get_item_group_information", legacy_limited=True)
+    get_item_category_information = _esi("universe/categories/{}", "get_item_category_information", legacy_limited=True)
     _get_region_orders = _esi("markets/{}/orders/", "_get_region_orders", accepts_params=True)
-    get_market_group = _esi("markets/groups/{}", "get_market_group")
+    get_market_group = _esi("markets/groups/{}", "get_market_group", legacy_limited=True)
     # fmt: on
 
 
@@ -309,9 +417,9 @@ class ESISession(PublicESISession):
         headers = {
             "User-Agent": "capsuleer.app me@aaronopfer.com",
             "Accept": "application/json",
+            "Authorization": aiohttp.encode_basic_auth(client_id, client_secret_key),
         }
-        auth = aiohttp.BasicAuth(client_id, client_secret_key)
-        self._login_session = aiohttp.ClientSession(headers=headers, auth=auth)
+        self._login_session = aiohttp.ClientSession(headers=headers)
         self._validator = EveJWTValidator(self._login_session)
 
         # Guard against cancellations
@@ -492,5 +600,5 @@ class ESISession(PublicESISession):
     get_wallet_journal = _esi("characters/{}/wallet/journal/", "get_wallet_journal", _STC)
     get_attributes = _esi("characters/{}/attributes/", "get_attributes", _STC)
     get_implants = _esi("characters/{}/implants/", "get_implants", _STC)
-    _get_structure_market = _esi("markets/structures/{}", "_get_structure_market", _STH, True)
+    _get_structure_market = _esi("markets/structures/{}", "_get_structure_market", _STH, True, legacy_limited=True)
     # fmt: on
