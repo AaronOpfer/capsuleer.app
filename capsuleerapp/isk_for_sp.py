@@ -3,7 +3,7 @@ import operator
 import time
 
 from .esi import ESISession
-from .types import ABCSession, AcceleratorInfo, ItemTypes
+from .types import ABCSession, AcceleratorInfo, ItemTypes, MarketOrder
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +16,15 @@ async def get_isk_for_sp_options(
 ) -> tuple[float, float, list[AcceleratorInfo]]:
     now = time.time()
     citadel_ids = await esi.get_forge_market_citadel_ids()
+    citadel_orders: dict[int, list[MarketOrder]] = {
+        citadel_id: await esi.get_structure_market_orders(fs, citadel_id)
+        for citadel_id in citadel_ids
+    }
     lsi_price = await esi.get_best_price(
-        fs, "sell", citadel_ids, 10000002, ItemTypes.LargeSkillInjector.value
+        fs, "sell", citadel_orders, 10000002, ItemTypes.LargeSkillInjector.value
     )
     ssi_price = await esi.get_best_price(
-        fs, "sell", citadel_ids, 10000002, ItemTypes.SmallSkillInjector.value
+        fs, "sell", citadel_orders, 10000002, ItemTypes.SmallSkillInjector.value
     )
 
     accelerators = []
@@ -75,7 +79,7 @@ async def get_isk_for_sp_options(
                 continue  # expired
 
         price = await esi.get_best_price(
-            fs, "sell", citadel_ids, 10000002, item_type_id
+            fs, "sell", citadel_orders, 10000002, item_type_id
         )
 
         if price is None:

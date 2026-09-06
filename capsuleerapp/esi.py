@@ -7,6 +7,7 @@ import logging
 import random
 import time
 import weakref
+from typing import Literal
 
 import aiohttp
 
@@ -18,6 +19,7 @@ from .types import (
     CharacterNeedsUpdated,
     ESILimiter,
     ESIRequestFailure,
+    MarketOrder,
     RefreshTokenError,
     Response,
     is_esi_downtime,
@@ -356,7 +358,10 @@ class PublicESISession:
         return await self._session.__aexit__(a, b, c)
 
     async def get_market_orders(
-        self, region_id: int, buy_sell: str, type_id: int | None = None
+        self,
+        region_id: int,
+        buy_sell: Literal["buy", "sell"],
+        type_id: int | None = None,
     ):
         page = 0
         params = {"order_type": buy_sell}
@@ -369,7 +374,7 @@ class PublicESISession:
                 orders = await self._get_region_orders(
                     region_id, params={"page": str(page), **params}
                 )
-            except aiohttp.ClientResponseError as exc:
+            except ESIRequestFailure as exc:
                 # Reading past the last page emits a 404 error.
                 # Treat this like an empty orders return value.
                 if page == 1 or exc.status != 404:
@@ -551,7 +556,9 @@ class ESISession(PublicESISession):
         pass
 
     @_requires_session
-    async def get_structure_market_orders(self, session, structure_id: int):
+    async def get_structure_market_orders(
+        self, session: ABCSession, structure_id: int
+    ) -> list[MarketOrder]:
         params = {"page": 0}
         if structure_id in self._bad_citadels:
             logger.debug(
@@ -566,12 +573,16 @@ class ESISession(PublicESISession):
                 page = await self._get_structure_market(
                     session, structure_id, params=params
                 )
-            except aiohttp.ClientResponseError as e:
+            except ESIRequestFailure as e:
                 if e.status == 403:
                     logger.info("citadel %d is forbidden to us", structure_id)
                     self._bad_citadels.add(structure_id)
                     return []
-                raise
+                # Reading past the last page emits a 404 error.
+                # Treat this like an empty orders return value.
+                if params["page"] == 1 or e.status != 404:
+                    raise
+                page = []
 
             orders += page
             if len(page) < 1000:
@@ -583,7 +594,14 @@ class ESISession(PublicESISession):
                 return orders
 
     @_requires_session
-    async def get_best_price(self, session, buy_sell, citadel_ids, region_id, type_id):
+    async def get_best_price(
+        self,
+        session: ABCSession,
+        buy_sell: Literal["buy", "sell"],
+        citadel_orders: dict[int, list[MarketOrder]],
+        region_id: int,
+        type_id: int,
+    ) -> float | None:
         comparator = max if buy_sell == "buy" else min
         orders = self.get_market_orders(region_id, buy_sell, type_id)
         current_best = None
@@ -594,10 +612,10 @@ class ESISession(PublicESISession):
                 current_best = comparator(current_best, order["price"])
         is_buy_order = buy_sell == "buy"
 
-        for citadel_id in citadel_ids:
+        for orders in citadel_orders.values():
             order_prices = [
                 o["price"]
-                for o in await self.get_structure_market_orders(session, citadel_id)
+                for o in orders
                 if o["is_buy_order"] == is_buy_order and o["type_id"] == type_id
             ]
             if order_prices and current_best is None:
