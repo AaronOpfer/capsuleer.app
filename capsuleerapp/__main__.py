@@ -461,9 +461,8 @@ class Server:
             status=200, headers={"Content-Type": "text/plain"}
         )
 
-        await response.prepare(request)
-
         try:
+            await response.prepare(request)
             async with asyncio.TaskGroup() as tg:
                 expected_count = len(character_ids)
                 for character_id in character_ids:
