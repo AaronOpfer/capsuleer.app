@@ -9,7 +9,7 @@ from collections.abc import Awaitable
 from email.utils import parsedate_to_datetime
 from operator import attrgetter
 from types import TracebackType
-from typing import NamedTuple
+from typing import NamedTuple, TypedDict
 
 import aiohttp
 
@@ -33,6 +33,12 @@ class AcceleratorInfo(NamedTuple):
     name: str
     magnitude: int
     duration: float
+
+
+class MarketOrder(TypedDict):
+    price: float
+    type_id: int
+    is_buy_order: bool
 
 
 class ItemTypes(enum.Enum):
