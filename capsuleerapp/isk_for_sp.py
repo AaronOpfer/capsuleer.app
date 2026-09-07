@@ -2,7 +2,7 @@ import logging
 import operator
 import time
 
-from .esi import ESISession
+from .esi import THE_FORGE_REGION_ID, ESISession
 from .types import ABCSession, AcceleratorInfo, ItemTypes, MarketOrder
 
 logger = logging.getLogger(__name__)
@@ -21,10 +21,18 @@ async def get_isk_for_sp_options(
         for citadel_id in citadel_ids
     }
     lsi_price = await esi.get_best_price(
-        fs, "sell", citadel_orders, 10000002, ItemTypes.LargeSkillInjector.value
+        fs,
+        "sell",
+        citadel_orders,
+        THE_FORGE_REGION_ID,
+        ItemTypes.LargeSkillInjector.value,
     )
     ssi_price = await esi.get_best_price(
-        fs, "sell", citadel_orders, 10000002, ItemTypes.SmallSkillInjector.value
+        fs,
+        "sell",
+        citadel_orders,
+        THE_FORGE_REGION_ID,
+        ItemTypes.SmallSkillInjector.value,
     )
 
     accelerators = []
@@ -79,7 +87,7 @@ async def get_isk_for_sp_options(
                 continue  # expired
 
         price = await esi.get_best_price(
-            fs, "sell", citadel_orders, 10000002, item_type_id
+            fs, "sell", citadel_orders, THE_FORGE_REGION_ID, item_type_id
         )
 
         if price is None:

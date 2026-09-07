@@ -68,6 +68,7 @@ RETRY_ERROR_STATUSES = frozenset({502, 503, 504})
 RATE_LIMIT_STATUS = 429
 # https://developers.eveonline.com/docs/reference/id-ranges/#stations
 NPC_STATION_ID_RANGE = range(60_000_000, 61_000_000)
+THE_FORGE_REGION_ID = 10_000_002
 
 
 class RateLimitLogger:
@@ -393,7 +394,7 @@ class PublicESISession:
                 )
                 return
 
-    get_forge_orders = functools.partialmethod(get_market_orders, 10_000_002)
+    get_forge_orders = functools.partialmethod(get_market_orders, THE_FORGE_REGION_ID)
 
     async def get_forge_market_citadel_ids(self):
         """
