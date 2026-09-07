@@ -6,8 +6,7 @@ backend default {
  .port = "12721";
  /* No active health probe: it can't see through ESI's own edge caching
   * (stale-if-error=900s on /status/) during the brief blips we actually
-  * care about, so health is entirely driven by the cron job that marks
-  * the backend sick/auto around daily downtime. */
+  * care about. See vcl_hit for how we decide to serve stale instead. */
 }
 
 sub vcl_recv {
@@ -52,17 +51,19 @@ sub vcl_hash {
 }
 
 sub vcl_hit {
-    /* stale-if-error, gated on backend health */
+    /* stale-if-error during the daily downtime window */
     if (obj.ttl >= 0s) {
         return (deliver);
     }
-    /* ttl < 0: expired but in grace */
-    if (std.healthy(req.backend_hint)) {
-        /* healthy: prefer a fresh fetch over the stale object */
-        return (pass);
+    /* ttl < 0: expired but in grace. ESI's daily downtime is scheduled
+     * for 11:00-11:30 UTC but has been observed to run a few minutes
+     * long, so prefer stale through 11:34. */
+    if (std.integer(std.strftime(now, "%H%M"), 0) >= 1100 &&
+        std.integer(std.strftime(now, "%H%M"), 0) < 1134) {
+        return (deliver);
     }
-    /* serve stale if backend is unhealthy */
-    return (deliver);
+    /* otherwise, prefer a fresh fetch over the stale object */
+    return (pass);
 }
 
 sub vcl_backend_response {
